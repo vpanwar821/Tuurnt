@@ -1,13 +1,13 @@
  pragma solidity ^0.4.18;
 
 import './lib/SafeMath.sol';
-import './TurrntToken.sol';
+import './TuurntToken.sol';
 
 contract VestingStrategy {
 
     using SafeMath for uint256;
 
-    TurrntToken token;
+    TuurntToken token;
     // Variable declaration
     address public founderAddress;
     address public teamAddress;
@@ -43,7 +43,7 @@ contract VestingStrategy {
     function setTokenAddress(address _tokenAddress) onlyFounder public returns (bool) {
         require(_tokenAddress != address(0));
         require(isTokenSet == false);
-        token = TurrntToken(_tokenAddress);
+        token = TuurntToken(_tokenAddress);
         tokenAddress = _tokenAddress;
         isTokenSet = !isTokenSet;
         return true;

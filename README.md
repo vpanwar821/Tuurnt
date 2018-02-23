@@ -1,2 +1,2 @@
-# Turrnt
-Turrnt (TRT) is an ERC20 compatible token.
+# Tuurnt
+Tuurnt (TRT) is an ERC20 compatible token.

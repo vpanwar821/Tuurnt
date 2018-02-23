@@ -3,7 +3,7 @@ pragma solidity ^0.4.18;
 import './helpers/StandardToken.sol';
 import './lib/SafeMath.sol';
 
-contract TurrntToken is StandardToken {
+contract TuurntToken is StandardToken {
 
     using SafeMath for uint256;
 
@@ -25,10 +25,10 @@ contract TurrntToken is StandardToken {
     address public vestingContractAddress;
     address public companyAddress;
 
-    function TurrntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
-        tokenAllocToTeam = ((totalSupply.mul(33)).div(100)) * 10 ** 18;     // 33 % Allocation
-        tokenAllocToCompany = ((totalSupply.mul(33)).div(100)) * 10 ** 18;  // 33 % Allocation 
-        tokenAllocToCrowdsale = ((totalSupply.mul(34)).div(100)) * 10 ** 18;// 34 % Allocation
+    function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
+        tokenAllocToTeam = (totalSupply.mul(33)).div(100);     // 33 % Allocation
+        tokenAllocToCompany = (totalSupply.mul(33)).div(100);  // 33 % Allocation 
+        tokenAllocToCrowdsale = (totalSupply.mul(34)).div(100);// 34 % Allocation
 
         // Address 
         owner = msg.sender;        
