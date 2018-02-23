@@ -1,0 +1,40 @@
+{
+  "name": "tuurnt_token",
+  "version": "0.1.0",
+  "description": "ERC20 Token",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "babel-polyfill": "6.26.0",
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-stage-2": "6.24.1",
+    "babel-preset-stage-3": "6.24.1",
+    "babel-register": "6.26.0",
+    "bignumber.js": "4.0.2",
+    "ethereumjs-testrpc": "4.1.1",
+    "ethereumjs-util": "^5.1.4",
+    "solc": "0.4.19",
+    "truffle": "4.0.1"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SecureBlocks/Tuurnt.git"
+  },
+  "keywords": [
+    "Ethereum",
+    "smart",
+    "contracts",
+    "solidity"
+  ],
+  "author": "Tuurnt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SecureBlocks/Tuurnt/issues"
+  },
+  "homepage": "https://github.com/SecureBlocks/Tuurnt#readme"
+}
