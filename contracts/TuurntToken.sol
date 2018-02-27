@@ -18,12 +18,16 @@ contract TuurntToken is StandardToken {
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
     uint256 public allocatedTokens;
+    uint256 public remainingTokens;
 
     // addresses
     address public owner;
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public companyAddress;
+    // address public founderAddress;
+
+    // event OwnershipTransferred(uint256 _timestamp, address _newFounderAddress);
 
     function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
         tokenAllocToTeam = (totalSupply.mul(33)).div(100);     // 33 % Allocation
@@ -35,23 +39,39 @@ contract TuurntToken is StandardToken {
         crowdsaleAddress = _crowdsaleAddress;
         vestingContractAddress = _vestingContract;
         companyAddress = _companyAddress;
+        // founderAddress = _founderAddress;
+
 
         // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
         balances[companyAddress] = tokenAllocToCompany;
-        balances[vestingContractAddress] = tokenAllocToTeam;
+        balances[vestingContractAddress] = tokenAllocToTeam; 
+
+        //Add transfer event
 
         allocatedTokens = balances[companyAddress];
     }  
 
     function transferRemainingToCompany() public returns(bool) {
         require(msg.sender == crowdsaleAddress);
-        uint256 remainingTokens = balances[crowdsaleAddress];
+        remainingTokens = balances[crowdsaleAddress];
         totalSupply = totalSupply.sub(remainingTokens);
         balances[crowdsaleAddress] = 0;
-        balances[companyAddress].add(remainingTokens); 
+        
+        //Add transfer event
+       balances[companyAddress] = balances[companyAddress].add(remainingTokens); 
         return true;
     }
+
+    // function transferOwnership(address _newFounderAddress) public returns(bool) {
+    //     require(msg.sender == founderAddress);
+    //     require(_newFounderAddress != address(0));
+    //     founderAddress = _newFounderAddress;
+    //     OwnershipTransferred(now,_newFounderAddress);
+    //     return true;
+    // }
+    
+
 
 
 }
