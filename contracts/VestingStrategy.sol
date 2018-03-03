@@ -36,8 +36,8 @@ contract VestingStrategy {
         firstSlotTimestamp = now + 1 * 365 days;
         secondSlotTimestamp = firstSlotTimestamp + 1 * 365 days;
         thirdSlotTimestamp = secondSlotTimestamp + 1 * 365 days;
-        finalSlotTimestamp = thirdSlotTimestamp + 1 * 365 days; // To cover the month days difference
-        vestingPeriod = now + 4 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
+        finalSlotTimestamp = thirdSlotTimestamp + 1 * 365 days; 
+        vestingPeriod = now + 4 * 365 days;   // 3 months for crowdsale end + 4 years of vesting
     }
 
     function setTokenAddress(address _tokenAddress) onlyFounder public returns (bool) {

@@ -25,9 +25,9 @@ contract TuurntToken is StandardToken {
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public companyAddress;
-    // address public founderAddress;
+   
 
-    // event OwnershipTransferred(uint256 _timestamp, address _newFounderAddress);
+    event TransferToken(address indexed _address, uint256 _token);
 
     function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
         tokenAllocToTeam = (totalSupply.mul(33)).div(100);     // 33 % Allocation
@@ -48,7 +48,9 @@ contract TuurntToken is StandardToken {
         balances[vestingContractAddress] = tokenAllocToTeam; 
 
         //Add transfer event
-
+        TransferToken(crowdsaleAddress,tokenAllocToCrowdsale);
+        TransferToken(companyAddress,tokenAllocToCompany);
+        TransferToken(vestingContractAddress,tokenAllocToTeam);
         allocatedTokens = balances[companyAddress];
     }  
 
@@ -60,17 +62,9 @@ contract TuurntToken is StandardToken {
         
         //Add transfer event
        balances[companyAddress] = balances[companyAddress].add(remainingTokens); 
+       TransferToken(companyAddress,remainingTokens);
         return true;
     }
-
-    // function transferOwnership(address _newFounderAddress) public returns(bool) {
-    //     require(msg.sender == founderAddress);
-    //     require(_newFounderAddress != address(0));
-    //     founderAddress = _newFounderAddress;
-    //     OwnershipTransferred(now,_newFounderAddress);
-    //     return true;
-    // }
-    
 
 
 
