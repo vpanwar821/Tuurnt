@@ -42,7 +42,7 @@ contract TuurntCrowdsale {
         buyTokens(msg.sender);
     }
 
-    function TuurntCrowdsale(address _founderAddress, address _beneficiaryAddress) {
+    function TuurntCrowdsale(address _founderAddress, address _beneficiaryAddress) public {
         founderAddress = _founderAddress;
         beneficiaryAddress = _beneficiaryAddress;
         startPresaleDate = now;

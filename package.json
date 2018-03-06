@@ -16,7 +16,8 @@
     "ethereumjs-testrpc": "4.1.1",
     "ethereumjs-util": "^5.1.4",
     "solc": "0.4.19",
-    "truffle": "4.0.1"
+    "truffle": "4.0.1",
+    "truffle-hdwallet-provider": "0.0.3"
   },
   "scripts": {
     "test": "truffle test"
