@@ -27,7 +27,7 @@ contract TuurntToken is StandardToken {
     address public companyAddress;
    
 
-    event TransferToken(address indexed _address, uint256 _token);
+    
 
     function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
         tokenAllocToTeam = (totalSupply.mul(33)).div(100);     // 33 % Allocation
@@ -48,9 +48,9 @@ contract TuurntToken is StandardToken {
         balances[vestingContractAddress] = tokenAllocToTeam; 
 
         //Add transfer event
-        TransferToken(crowdsaleAddress,tokenAllocToCrowdsale);
-        TransferToken(companyAddress,tokenAllocToCompany);
-        TransferToken(vestingContractAddress,tokenAllocToTeam);
+        Transfer(address(0),crowdsaleAddress,tokenAllocToCrowdsale);
+        Transfer(address(0),companyAddress,tokenAllocToCompany);
+        Transfer(address(0),vestingContractAddress,tokenAllocToTeam);
         allocatedTokens = balances[companyAddress];
     }  
 
@@ -62,8 +62,8 @@ contract TuurntToken is StandardToken {
         
         //Add transfer event
        balances[companyAddress] = balances[companyAddress].add(remainingTokens); 
-       TransferToken(companyAddress,remainingTokens);
-        return true;
+       Transfer(address(0),companyAddress,remainingTokens);
+       return true;
     }
 
 

@@ -2,72 +2,74 @@
 // aren’t included within the original RPC specification.
 // See https://github.com/ethereumjs/testrpc#implemented-methods
 
-// export const increaseTime = (time) => {
-//     return new Promise((resolve, reject) => {
-//         web3.currentProvider.sendAsync({
-//             jsonrpc: '2.0',
-//             method: 'evm_increaseTime',
-//             params: [time], // Time increase param.
-//             id: new Date().getTime()
-//         }, (err) => {
-//             if (err) {
-//                 return reject(err);
-//             }
+const increaseTime = (time) => {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: '2.0',
+            method: 'evm_increaseTime',
+            params: [time], // Time increase param.
+            id: new Date().getTime()
+        }, (err) => {
+            if (err) {
+                return reject(err);
+            }
 
-//             resolve();
-//         });
-//     });
-// };
+            resolve();
+        });
+    });
+};
 
-// export const takeSnapshot = () => {
-//     return new Promise((resolve, reject) => {
-//         web3.currentProvider.sendAsync({
-//             jsonrpc: '2.0',
-//             method: 'evm_snapshot',
-//             params: [],
-//             id: new Date().getTime()
-//         }, (err, result) => {
-//             if (err) {
-//                 return reject(err);
-//             }
+const takeSnapshot = () => {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: '2.0',
+            method: 'evm_snapshot',
+            params: [],
+            id: new Date().getTime()
+        }, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
 
-//             resolve(result.result);
-//         });
-//     });
-// };
+            resolve(result.result);
+        });
+    });
+};
 
-// export const revertToSnapshot = (snapShotId) => {
-//     return new Promise((resolve, reject) => {
-//         web3.currentProvider.sendAsync({
-//             jsonrpc: '2.0',
-//             method: 'evm_revert',
-//             params: [snapShotId],
-//             id: new Date().getTime()
-//         }, (err) => {
-//             if (err) {
-//                 return reject(err);
-//             }
+const revertToSnapshot = (snapShotId) => {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: '2.0',
+            method: 'evm_revert',
+            params: [snapShotId],
+            id: new Date().getTime()
+        }, (err) => {
+            if (err) {
+                return reject(err);
+            }
 
-//             resolve();
-//         });
-//     });
-// };
+            resolve();
+        });
+    });
+};
 
-// export const mine = () => {
-//     return new Promise((resolve, reject) => {
-//         web3.currentProvider.sendAsync({
-//             jsonrpc: '2.0',
-//             method: 'evm_mine',
-//             params: [],
-//             id: new Date().getTime()
-//         }, (err) => {
-//             if (err) {
-//                 return reject(err);
-//             }
+const mine = () => {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: '2.0',
+            method: 'evm_mine',
+            params: [],
+            id: new Date().getTime()
+        }, (err) => {
+            if (err) {
+                return reject(err);
+            }
 
-//             resolve();
-//         });
-//     });
-// };
+            resolve();
+        });
+    });
+};
+
+export {increaseTime,takeSnapshot,revertToSnapshot,mine};
 
 
