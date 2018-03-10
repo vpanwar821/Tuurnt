@@ -1,7 +1,8 @@
 require('babel-register');
 require('babel-polyfill');
 var HDWalletProvider = require("truffle-hdwallet-provider");
-const mnemonic = require('fs').readFileSync('./sample-pass').toString();
+const mnemonic = "test";
+// const mnemonic = require('fs').readFileSync('./sample-pass').toString();
 
 module.exports = {
   networks: {
