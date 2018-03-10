@@ -60,9 +60,9 @@ contract TuurntToken is StandardToken {
         balances[vestingContractAddress] = tokenAllocToTeam; 
 
         //transfer event
-        Transfer(address(0),crowdsaleAddress,tokenAllocToCrowdsale);
-        Transfer(address(0),companyAddress,tokenAllocToCompany);
-        Transfer(address(0),vestingContractAddress,tokenAllocToTeam);
+        Transfer(address(0), crowdsaleAddress, tokenAllocToCrowdsale);
+        Transfer(address(0), companyAddress, tokenAllocToCompany);
+        Transfer(address(0), vestingContractAddress, tokenAllocToTeam);
         allocatedTokens = balances[companyAddress];
     }  
 
