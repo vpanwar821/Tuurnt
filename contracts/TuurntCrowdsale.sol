@@ -183,7 +183,8 @@ contract TuurntCrowdsale {
     */
     function endCrowdfund() onlyFounder public returns(bool) {
         require(now > endCrowdsaleDate);
-        require(token.transferRemainingToCompany());
+        uint256 remaining = token.balanceOf(this);
+        require(token.transfer(companyAddress, remaining));
     }
 
 }
