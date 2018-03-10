@@ -1,4 +1,10 @@
- pragma solidity ^0.4.18;
+pragma solidity ^0.4.18;
+
+/**
+* @title VestingStrategy 
+* @dev The Vesting contract holds the token for the team and provides the function 
+* that release the token to token.
+*/
 
 import './lib/SafeMath.sol';
 import './TuurntToken.sol';
@@ -8,11 +14,13 @@ contract VestingStrategy {
     using SafeMath for uint256;
 
     TuurntToken token;
-    // Variable declaration
+    
+    //addresses
     address public founderAddress;
     address public teamAddress;
     address public tokenAddress;
 
+    //timeslot timestamp
     uint256 public firstSlotTimestamp;
     uint256 public secondSlotTimestamp;
     uint256 public thirdSlotTimestamp;
@@ -25,11 +33,20 @@ contract VestingStrategy {
 
     event OwnershipTransferred(uint256 _timestamp, address _newFounderAddress);
 
+
+    /**
+    * @dev Throws if called by an account other than the founder.
+    */
     modifier onlyFounder(){
         require(msg.sender == founderAddress);
         _;
     }
 
+    /**
+    * @dev The VestingStrategy constructor set the orginal teamAddress and founderAddress and set the 
+    * slot timestamp
+    * @param _teamAddress The address of team address
+    */
     function VestingStrategy(address _teamAddress) public {
         teamAddress = _teamAddress;
         founderAddress = msg.sender;
@@ -40,6 +57,10 @@ contract VestingStrategy {
         vestingPeriod = now + 4 * 365 days;   // 3 months for crowdsale end + 4 years of vesting
     }
 
+    /**
+    * @dev Allows the founder to set the token address 
+    * @param _tokenAddress The token contract address   
+    */
     function setTokenAddress(address _tokenAddress) onlyFounder public returns (bool) {
         require(_tokenAddress != address(0));
         require(isTokenSet == false);
@@ -49,12 +70,19 @@ contract VestingStrategy {
         return true;
     }
 
+    /**
+    * @dev Allows the current founder to transfer the ownership of contract to new founder  
+    * @param _newFounderAddress The address of new founder
+    */
     function transferOwnership(address _newFounderAddress) onlyFounder public returns(bool) {
         founderAddress = _newFounderAddress;
         OwnershipTransferred(now,_newFounderAddress);
         return true;
     }
 
+    /**
+    * @dev Allows the founder to release token to the team at some timeslots
+    */
     function releaseTokenToTeam() onlyFounder public returns(bool) {
         require(isTokenSet == true);
         if (now >= finalSlotTimestamp) {
