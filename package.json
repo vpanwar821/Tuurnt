@@ -17,11 +17,17 @@
     "ethereumjs-util": "^5.1.4",
     "solc": "0.4.19",
     "truffle": "4.0.1",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "0.0.3",
+    "ganache-cli": "^6.0.3"
+  },
+  "devDependencies": {
+    "testrpc": "^0.0.1"
   },
   "scripts": {
     "compile": "truffle compile",
-    "test": "compile && testrpc -l 10000000000 && truffle test"
+    "test": "npm run ganache-cli:dev && truffle test --network development",
+    "ganache-cli:dev": "scripts/ganache-cli.sh",
+    "ganache-cli:coverage": "SOLIDITY_COVERAGE=true scripts/ganache-cli.sh"
   },
   "repository": {
     "type": "git",
