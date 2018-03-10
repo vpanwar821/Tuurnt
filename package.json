@@ -20,7 +20,8 @@
     "truffle-hdwallet-provider": "0.0.3"
   },
   "scripts": {
-    "test": "truffle test"
+    "compile": "truffle compile",
+    "test": "compile && testrpc -l 10000000000 && truffle test"
   },
   "repository": {
     "type": "git",
