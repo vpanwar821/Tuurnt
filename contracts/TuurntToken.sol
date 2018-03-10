@@ -17,7 +17,6 @@ contract TuurntToken is StandardToken {
     string public name = "Tuurnt Token";                                
     string public symbol = "TRT";
     uint16 public decimals = 18;
-    uint256 public totalSupply = 500000000 * 10 ** 18;
 
     // distribution variables
     uint256 public tokenAllocToTeam;
@@ -42,9 +41,12 @@ contract TuurntToken is StandardToken {
     */
 
     function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
-        tokenAllocToTeam = (totalSupply.mul(33)).div(100);     // 33 % Allocation
-        tokenAllocToCompany = (totalSupply.mul(33)).div(100);  // 33 % Allocation 
-        tokenAllocToCrowdsale = (totalSupply.mul(34)).div(100);// 34 % Allocation
+        
+        totalSupply_ = 500000000 * 10 ** 18;
+        
+        tokenAllocToTeam = (totalSupply_.mul(33)).div(100);     // 33 % Allocation
+        tokenAllocToCompany = (totalSupply_.mul(33)).div(100);  // 33 % Allocation 
+        tokenAllocToCrowdsale = (totalSupply_.mul(34)).div(100);// 34 % Allocation
 
         // Address 
         owner = msg.sender;        
@@ -65,20 +67,4 @@ contract TuurntToken is StandardToken {
         Transfer(address(0), vestingContractAddress, tokenAllocToTeam);
         allocatedTokens = balances[companyAddress];
     }  
-
-    /**
-    * @dev Transfer the remaining tokens of the crowdsale to the company address
-    */
-    function transferRemainingToCompany() public returns(bool) {
-        require(msg.sender == crowdsaleAddress);
-        remainingTokens = balances[crowdsaleAddress];
-        totalSupply = totalSupply.sub(remainingTokens);
-        balances[crowdsaleAddress] = 0;
-        balances[companyAddress] = balances[companyAddress].add(remainingTokens); 
-        Transfer(address(0),companyAddress,remainingTokens);
-        return true;
-    }
-
-
-
 }
