@@ -18,7 +18,10 @@
     "solc": "0.4.19",
     "truffle": "4.0.1",
     "truffle-hdwallet-provider": "0.0.3",
-    "zeppelin-solidity": "1.7.0"
+    "ganache-cli": "^6.0.3"
+  },
+  "devDependencies": {
+    "testrpc": "^0.0.1"
   },
   "scripts": {
     "compile": "truffle compile",
