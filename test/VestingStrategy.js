@@ -17,6 +17,9 @@ contract('VestingStrategy', (accounts) => {
     let holder1;
     let holder2;
     let slotAmount = 41250000;
+    let name;
+    let symbol;
+    let decimals;
 
     before(async() => {
         founder = accounts[0];
@@ -25,7 +28,10 @@ contract('VestingStrategy', (accounts) => {
         crowdsaleAddress = accounts[3];
         vestingContractAddress = accounts[4];
         teamAddress = accounts[5];  
-        companyAddress = accounts[6];      
+        companyAddress = accounts[6];    
+        name = "Tuurnt Token";
+        symbol = "TRT";
+        decimals = 18;   
     });
 
     it("Verify Constructors", async() => {
@@ -33,9 +39,6 @@ contract('VestingStrategy', (accounts) => {
 
         let teamAddr = await vesting.teamAddress();
         assert.equal(teamAddr.toString(),teamAddress);
-        
-        let founderAddr = await vesting.founderAddress();
-        assert.equal(founderAddr.toString(),founder);
 
         let firstSlotTimestamp = new BigNumber(await vesting.firstSlotTimestamp()).toNumber();
         let secondSlotTimestamp = new BigNumber(await vesting.secondSlotTimestamp()).toNumber();
@@ -55,7 +58,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("setTokenAddress:Should set the token contract address", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress);
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         let tokenAddr = await vesting.tokenAddress();
         assert.equal(tokenAddr.toString(),tuurnt.address);
@@ -63,7 +66,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("setTokenAddress:trying to set token address with the non founder address", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress);
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         try{
             await vesting.setTokenAddress(tuurnt.address,{from:holder1});
         }
@@ -74,7 +77,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("setTokenAddress:trying to set the token address again by founder (should fail)", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress);
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         try{
             await vesting.setTokenAddress(tuurnt.address,{from:founder});
@@ -84,30 +87,30 @@ contract('VestingStrategy', (accounts) => {
         }
     });
 
-    it("transferOwnership:Should change the founder address with the passed address", async() => {
-        let vesting = await VESTING.new(teamAddress);
-        let founderAddressBefore = await vesting.founderAddress();
-        assert.equal(founderAddressBefore.toString(),founder)
-        await vesting.transferOwnership(holder2,{from:founder});
-        let founderAddressAfter = await vesting.founderAddress();
-        assert.equal(founderAddressAfter,holder2);
-    });
+    // it("transferOwnership:Should change the founder address with the passed address", async() => {
+    //     let vesting = await VESTING.new(teamAddress);
+    //     let founderAddressBefore = await vesting.founderAddress();
+    //     assert.equal(founderAddressBefore.toString(),founder)
+    //     await vesting.transferOwnership(holder2,{from:founder});
+    //     let founderAddressAfter = await vesting.founderAddress();
+    //     assert.equal(founderAddressAfter,holder2);
+    // });
 
-    it("transferOwnership:trying to change the founder address calling by non founder(should fail)", async() => {
-        let vesting = await VESTING.new(teamAddress);
-        let founderAddressBefore = await vesting.founderAddress();
-        assert.equal(founderAddressBefore.toString(),founder)
-        try {
-            await vesting.transferOwnership(holder2,{from:holder1});
-        }
-        catch(error) {
-            Utils.ensureException(error);
-        }
-    });
+    // it("transferOwnership:trying to change the founder address calling by non founder(should fail)", async() => {
+    //     let vesting = await VESTING.new(teamAddress);
+    //     let founderAddressBefore = await vesting.founderAddress();
+    //     assert.equal(founderAddressBefore.toString(),founder)
+    //     try {
+    //         await vesting.transferOwnership(holder2,{from:holder1});
+    //     }
+    //     catch(error) {
+    //         Utils.ensureException(error);
+    //     }
+    // });
 
     it("releaseTokenToTeam:token release to the team after each 365 days slot", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(31536000);    //365 days
@@ -147,7 +150,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 1st,3rd and 4th slot", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(31536000);    //365 days
@@ -179,7 +182,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 2nd,3rd and 4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(2*31536000);
@@ -210,7 +213,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 1st,2nd and 4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(31536000);
@@ -241,7 +244,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 1st,4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(31536000);
@@ -264,7 +267,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 2nd,4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(2*31536000);
@@ -287,7 +290,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 3rd,4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(3*31536000);
@@ -310,7 +313,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team in 4th slot after 365 days", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress)
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
         
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(4*31536000);
@@ -325,7 +328,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:token release to the team before 365 days(should fail)", async() => {
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress);
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
 
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await vesting.releaseTokenToTeam({from:founder});
@@ -337,7 +340,7 @@ contract('VestingStrategy', (accounts) => {
 
     it("releaseTokenToTeam:trying to release token by a non founder address(shoul fail)", async() => { 
         let vesting = await VESTING.new(teamAddress);
-        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress);
+        let tuurnt = await TUURNT.new(crowdsaleAddress,vesting.address,companyAddress,name,symbol,decimals);
 
         await vesting.setTokenAddress(tuurnt.address,{from:founder});
         await time.increaseTime(31536000);
