@@ -6,10 +6,12 @@ pragma solidity ^0.4.18;
 * contains the function to buy token.  
 */
 
-import './lib/SafeMath.sol';
+import 'zeppelin-solidity/contracts/math/Math.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import './TuurntToken.sol';
 
-contract TuurntCrowdsale {
+
+contract TuurntCrowdsale is Ownable {
 
     using SafeMath for uint256;
 
@@ -27,24 +29,13 @@ contract TuurntCrowdsale {
     uint256 public soldToken = 0;
     uint256 public amount;
 
-    bool public isTokenSet = false;
-
     //addresses
-    address public founderAddress;
     address public beneficiaryAddress;
     address public tokenAddress;
 
-    event TokenBought(address indexed _investor, uint256 _token);
+    event TokenBought(address indexed _investor, uint256 _token, uint256 _timestamp);
     event LogTokenSet(address _token, uint256 _timestamp);
     enum State {PreSale, CrowdSale, Finish}
-
-    /**
-    * @dev Throws if called by an account other than founder.
-    */
-    modifier onlyFounder() {
-        require(founderAddress == msg.sender);
-        _;
-    } 
 
     /**
     * @dev Transfer the ether to the beneficiaryAddress.
@@ -63,13 +54,12 @@ contract TuurntCrowdsale {
     }
 
     /**
-    * @dev TuurntCrowdsale constructor sets the original founderAddress and beneficiaryAddress and 
+    * @dev TuurntCrowdsale constructor sets the original beneficiaryAddress and 
     * set the timeslot for the Pre-ICO and ICO.
-    * @param _founderAddress The address to set the founder address.
     * @param _beneficiaryAddress The address to transfer the ether that is raised during crowdsale. 
     */
-    function TuurntCrowdsale(address _founderAddress, address _beneficiaryAddress) public {
-        founderAddress = _founderAddress;
+    function TuurntCrowdsale(address _beneficiaryAddress) public {
+        require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
         startPresaleDate = now;
         endPresaleDate = now + 2 days;
@@ -81,12 +71,10 @@ contract TuurntCrowdsale {
     * @dev Allow founder to set the token contract address.
     * @param _tokenAddress The address of token contract.
     */
-    function setTokenAddress(address _tokenAddress) onlyFounder public returns(bool) {
-        require(isTokenSet == false);
-        require(_tokenAddress != address(0));
+    function setTokenAddress(address _tokenAddress) onlyOwner public returns(bool) {
+        require(tokenAddress == address(0));
         token = TuurntToken(_tokenAddress);
         tokenAddress = _tokenAddress;
-        isTokenSet = !isTokenSet;
         LogTokenSet(token, now);
         return true;
     }
@@ -95,7 +83,7 @@ contract TuurntCrowdsale {
     * @dev Allow founder to change the minimum investment of ether.
     * @param _newMinInvestment The value of new minimum ether investment. 
     */
-    function changeMinInvestment(uint256 _newMinInvestment) onlyFounder public {
+    function changeMinInvestment(uint256 _newMinInvestment) onlyOwner public {
         MIN_INVESTMENT = _newMinInvestment;
     }
 
@@ -103,7 +91,7 @@ contract TuurntCrowdsale {
     * @dev Allow founder to change the maximum investment of ether.
     * @param _newMaxInvestment The value of new maximum ether investment. 
     */
-    function changeMaxInvestment(uint256 _newMaxInvestment) onlyFounder public {
+    function changeMaxInvestment(uint256 _newMaxInvestment) onlyOwner public {
         MAX_INVESTMENT = _newMaxInvestment;
     }
 
@@ -166,14 +154,14 @@ contract TuurntCrowdsale {
     returns(bool)
     {
         require(_investorAddress != address(0));
-        require(isTokenSet == true);
+        require(tokenAddress != address(0));
         require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
         amount = getTokenAmount(msg.value);
         require(fundTransfer(msg.value));
         require(token.transfer(_investorAddress, amount));
         ethRaised = ethRaised.add(msg.value);
         soldToken = soldToken.add(amount);
-        TokenBought(_investorAddress,amount);
+        TokenBought(_investorAddress,amount,now);
         return true;
     }
 
@@ -181,7 +169,7 @@ contract TuurntCrowdsale {
     * @dev Allow founder to end the crowsale and transfer the remaining
     * tokens of crowdfund to the company address. 
     */
-    function endCrowdfund() onlyFounder public returns(bool) {
+    function endCrowdfund(address companyAddress) onlyOwner public returns(bool) {
         require(now > endCrowdsaleDate);
         uint256 remaining = token.balanceOf(this);
         require(token.transfer(companyAddress, remaining));
