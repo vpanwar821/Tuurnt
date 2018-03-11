@@ -13,6 +13,9 @@ let holder1;
 let holder2;
 let holder3;
 let holder4;
+let name;
+let symbol;
+let decimals;
 
 contract('TuurntCrowsale',accounts =>{ 
     before(async()=>{
@@ -25,13 +28,14 @@ contract('TuurntCrowsale',accounts =>{
         crowdsaleAddress = accounts[6];
         vestingContractAddress = accounts[7];
         companyAddress = accounts[8]; 
+        name = "Tuurnt Token";
+        symbol = "TRT";
+        decimals = 18; 
         
     });
 
     it('Verify constructor', async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let founderAddr = await Tuurnt.founderAddress();
-        assert.equal(founderAddr,founder);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         let beneficiaryAddr = await Tuurnt.beneficiaryAddress();
         assert.equal(beneficiaryAddr,beneficiaryAddress);
 
@@ -45,16 +49,16 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("setTokenAddress:set the token contract address", async() => {
-        let TuurntToken = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress);
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         let tokenAddr = await Tuurnt.tokenAddress();
         assert.equal(tokenAddr.toString(),TuurntToken.address);
     });
 
     it("setTokenAddress:set the token contract address by a non founder(should fail)", async() => {
-        let TuurntToken = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress);
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         try{
             await Tuurnt.setTokenAddress(TuurntToken.address,{from:holder1});
         }
@@ -64,7 +68,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMinInvestment:should change the minimum investment", async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
         await Tuurnt.changeMinInvestment(new BigNumber(4).times(new BigNumber(10).pow(18)),{from:founder});
@@ -74,7 +78,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMinInvestment:try to change the minimum investment by the non-founder(should fail)", async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
         try{  
@@ -87,7 +91,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMaxInvestment:should change the maximum investment", async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
         
         await Tuurnt.changeMaxInvestment(new BigNumber(15).times(new BigNumber(10).pow(18)),{from:founder});
@@ -97,7 +101,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMaxInvestment:try to change the maximum investment by the non-founder(should fail)", async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
         assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
         
         try{  
@@ -110,8 +114,8 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("buyToken:buy tokens in presale and crowdsale by transferring ether", async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
@@ -167,8 +171,8 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('buyTokens:trying to buy token without setting the token address(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
 
         try{
             await web3.eth.sendTransaction({
@@ -184,8 +188,8 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('buyTokens:trying to buy token with ether less than the minimum investment(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         try{
             await web3.eth.sendTransaction({
@@ -202,8 +206,8 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('buyTokens:trying to buy token with ether greater than the maximum investment(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         try{
             await web3.eth.sendTransaction({
@@ -220,8 +224,8 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('buyTokens:trying to buy token after the completion of crowsale(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         await time.increaseTime(7*7*24*60*60);
         try{
@@ -238,23 +242,23 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('endCrowdfund:Should end the crowdfund and transfer the remaining tokens to the company address', async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         await time.increaseTime(7*7*24*60*60);
-        await Tuurnt.endCrowdfund({from:founder});
+        await Tuurnt.endCrowdfund(companyAddress,{from:founder});
         assert.equal(await TuurntToken.balanceOf.call(Tuurnt.address),0);
         assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)),335000000);
     
     });
 
     it('endCrowdfund:trying to end the crowdfund by a non founder(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         await time.increaseTime(7*7*24*60*60);
         try{
-            await Tuurnt.endCrowdfund({from:holder1});
+            await Tuurnt.endCrowdfund(companyAddress,{from:holder1});
         }
         catch(error){
             Utils.ensureException(error);
@@ -262,12 +266,12 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it('endCrowdfund:trying to end the crowdfund before the crowdsale(should fail)',async() => {
-        let Tuurnt = await CROWDSALE.new(founder, beneficiaryAddress);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,vestingContractAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         await time.increaseTime(7*6*24*60*60);
         try{
-            await Tuurnt.endCrowdfund({from:founder});
+            await Tuurnt.endCrowdfund(companyAddress,{from:founder});
         }
         catch(error){
             Utils.ensureException(error);

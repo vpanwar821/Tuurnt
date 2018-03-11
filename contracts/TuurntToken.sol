@@ -6,23 +6,18 @@ pragma solidity ^0.4.18;
 * Tuurnt token.
 */
 
-import './helpers/StandardToken.sol';
-import './lib/SafeMath.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol';
+import 'zeppelin-solidity/contracts/math/Math.sol';
 
-contract TuurntToken is StandardToken {
+contract TuurntToken is StandardToken, DetailedERC20 {
 
     using SafeMath for uint256;
-
-    // token Variable declaration
-    string public name = "Tuurnt Token";                                
-    string public symbol = "TRT";
-    uint16 public decimals = 18;
 
     // distribution variables
     uint256 public tokenAllocToTeam;
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
-    uint256 public allocatedTokens;
     uint256 public remainingTokens;
 
     // addresses
@@ -40,10 +35,16 @@ contract TuurntToken is StandardToken {
     * @param _companyAddress The address of company address 
     */
 
-    function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress) public {
-        
+    function TuurntToken(address _crowdsaleAddress, address _vestingContract, address _companyAddress, string _name, string _symbol, uint8 _decimals) public 
+        DetailedERC20(_name, _symbol, _decimals)
+    {
+        require(_crowdsaleAddress != address(0));
+        require(_vestingContract != address(0));
+        require(_companyAddress != address(0));
         totalSupply_ = 500000000 * 10 ** 18;
-        
+        _name = "Tuurnt Token";
+        _symbol = "TRT";
+        _decimals = 18; 
         tokenAllocToTeam = (totalSupply_.mul(33)).div(100);     // 33 % Allocation
         tokenAllocToCompany = (totalSupply_.mul(33)).div(100);  // 33 % Allocation 
         tokenAllocToCrowdsale = (totalSupply_.mul(34)).div(100);// 34 % Allocation
@@ -65,6 +66,6 @@ contract TuurntToken is StandardToken {
         Transfer(address(0), crowdsaleAddress, tokenAllocToCrowdsale);
         Transfer(address(0), companyAddress, tokenAllocToCompany);
         Transfer(address(0), vestingContractAddress, tokenAllocToTeam);
-        allocatedTokens = balances[companyAddress];
+        
     }  
 }
