@@ -19,14 +19,16 @@
     "truffle": "4.0.1",
     "truffle-hdwallet-provider": "0.0.3",
     "ganache-cli": "^6.0.3",
-    "zeppelin-solidity":"1.7.0"
+    "zeppelin-solidity": "1.7.0"
   },
   "devDependencies": {
+    "sol-merger": "^0.1.2",
     "testrpc": "^0.0.1"
   },
   "scripts": {
     "compile": "truffle compile",
     "test": "npm run ganache-cli:dev && truffle test --network development",
+    "flatten": "sol-merger './contracts/*.sol' ./flat",
     "ganache-cli:dev": "scripts/ganache-cli.sh",
     "ganache-cli:coverage": "SOLIDITY_COVERAGE=true scripts/ganache-cli.sh"
   },
