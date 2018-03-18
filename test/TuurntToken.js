@@ -1,5 +1,4 @@
 const TuurntToken = artifacts.require('TuurntToken.sol');
-const VestingStrategy = artifacts.require('VestingStrategy.sol');
 const BigNumber =  require('bignumber.js');
 const Utils = require('./helpers/Utils');
 
@@ -7,7 +6,7 @@ const Utils = require('./helpers/Utils');
 let tokenAddress;
 let owner;
 let crowdsaleAddress;
-let vestingContractAddress;
+let teamAddress;
 let companyAddress;
 let holder1;
 let holder2;
@@ -21,7 +20,7 @@ contract('TuurntToken',(accounts)=>{
     before(async()=>{
         owner = accounts[0];
         crowdsaleAddress = accounts[1];
-        vestingContractAddress = accounts[2];
+        teamAddress = accounts[2];
         companyAddress = accounts[3];
         holder1 = accounts[4];
         holder2 = accounts[5];
@@ -30,13 +29,13 @@ contract('TuurntToken',(accounts)=>{
         name = "Tuurnt Token";
         symbol = "TRT";
         decimals = 18; 
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         tokenAddress = token.address;
      });
 
      it('check parameters', async() => {
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
-        let teamBalance = await token.balanceOf.call(vestingContractAddress);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
+        let teamBalance = await token.balanceOf.call(teamAddress);
         assert.strictEqual(teamBalance.dividedBy(new BigNumber(10).pow(18)).toNumber(),165000000);
         let companyBalance = await token.balanceOf.call(companyAddress);
         assert.strictEqual(companyBalance.dividedBy(new BigNumber(10).pow(18)).toNumber(),165000000);
@@ -46,7 +45,7 @@ contract('TuurntToken',(accounts)=>{
      });
 
      it('verify the allocation variable', async() => {
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         // let _totalSupply = await token.totalSupply_.call();
         // assert.strictEqual(_totalSupply.dividedBy(new BigNumber(10).pow(18)).toNumber(),500000000);
         let _tokenAllocToTeam = await token.tokenAllocToTeam.call();
@@ -59,7 +58,7 @@ contract('TuurntToken',(accounts)=>{
      });
 
      it('ether:transfer ether directly to token contract --- throws error', async() => {
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         try{
             await web3
                 .eth
@@ -75,7 +74,7 @@ contract('TuurntToken',(accounts)=>{
     });
 
     it('transfer:should transfer 500 tokens to holder1 from crowdfund then holder1 transfer 300 tokens to holder2', async() =>{
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         await token
         .transfer(holder1,
         new BigNumber(500)
@@ -103,7 +102,7 @@ contract('TuurntToken',(accounts)=>{
     });
 
     it('approve:holder1 should approve 1000 token to holder 2 and withdraws 400 token', async()=>{
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         await token.transfer(holder1,
             new BigNumber(1000)
             .times(
@@ -143,7 +142,7 @@ contract('TuurntToken',(accounts)=>{
     });
 
     it('approve:holder1 should approve 500 token to holder 2 and withdraws 600 token', async()=>{
-        let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+        let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
             await token.transfer(holder1,
                 new BigNumber(1000)
                 .times(
@@ -181,7 +180,7 @@ contract('TuurntToken',(accounts)=>{
         });
 
         it('Approve max (2^256 - 1)', async() => {
-            let token = await TuurntToken.new(crowdsaleAddress,vestingContractAddress,companyAddress,name,symbol,decimals);
+            let token = await TuurntToken.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
             await token.approve(holder1, '115792089237316195423570985008687907853269984665640564039457584007913129639935', {from: holder2});
             let _allowance = await token.allowance(holder2, holder1);
             let result = _allowance.equals('1.15792089237316195423570985008687907853269984665640564039457584007913129639935e' +
