@@ -28,6 +28,8 @@ contract TuurntCrowdsale is Ownable {
     uint256 public endPresaleDate;
     uint256 public soldToken = 0;
     uint256 public amount;
+    uint256 public softCap = 833 ether;
+    uint256 public hardCap = 16667 ether;
 
     //addresses
     address public beneficiaryAddress;
@@ -93,6 +95,15 @@ contract TuurntCrowdsale is Ownable {
     */
     function changeMaxInvestment(uint256 _newMaxInvestment) onlyOwner public {
         MAX_INVESTMENT = _newMaxInvestment;
+    }
+
+    /**
+    * @dev Allow founder to change the ether rate.
+    * @params _newEthRate current rate of ether. 
+    */
+    function setEtherRate(uint256 _newEthRate) onlyOwner public {
+        require(newEthRate != 0);
+        ethRate = _newEthRate.mul(100);
     }
 
     /**
@@ -170,7 +181,7 @@ contract TuurntCrowdsale is Ownable {
     * tokens of crowdfund to the company address. 
     */
     function endCrowdfund(address companyAddress) onlyOwner public returns(bool) {
-        require(now > endCrowdsaleDate);
+        require(now > endCrowdsaleDate || ethRaised >= hardCap);
         uint256 remaining = token.balanceOf(this);
         require(token.transfer(companyAddress, remaining));
     }
