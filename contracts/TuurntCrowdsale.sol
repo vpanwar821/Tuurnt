@@ -29,7 +29,7 @@ contract TuurntCrowdsale is Ownable {
     uint256 public soldToken = 0;
     uint256 public amount;
     uint256 public softCap = 833 ether;
-    uint256 public hardCap = 16667 ether;
+    uint256 public hardCap = 16667 ether;                                                             
 
     //addresses
     address public beneficiaryAddress;
@@ -181,9 +181,11 @@ contract TuurntCrowdsale is Ownable {
     * tokens of crowdfund to the company address. 
     */
     function endCrowdfund(address companyAddress) onlyOwner public returns(bool) {
-        require(now > endCrowdsaleDate || ethRaised >= hardCap);
-        uint256 remaining = token.balanceOf(this);
-        require(token.transfer(companyAddress, remaining));
+        if (now >= endCrowdsaleDate || (now < endCrowdsaleDate && ethRaised >= hardCap)) {
+            uint256 remaining = token.balanceOf(this);
+            require(token.transfer(companyAddress, remaining));
+        }
+      
     }
 
 }
