@@ -301,10 +301,9 @@ contract TuurntToken is StandardToken, DetailedERC20 {
     uint256 public tokenAllocToTeam;
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
-    uint256 public remainingTokens;
+    
 
     // addresses
-    address public owner;
     address public crowdsaleAddress;
     address public teamAddress;
     address public companyAddress;
@@ -325,15 +324,11 @@ contract TuurntToken is StandardToken, DetailedERC20 {
         require(_teamAddress != address(0));
         require(_companyAddress != address(0));
         totalSupply_ = 500000000 * 10 ** 18;
-        _name = "Tuurnt Token";
-        _symbol = "TRT";
-        _decimals = 18; 
         tokenAllocToTeam = (totalSupply_.mul(33)).div(100);     // 33 % Allocation
         tokenAllocToCompany = (totalSupply_.mul(33)).div(100);  // 33 % Allocation 
         tokenAllocToCrowdsale = (totalSupply_.mul(34)).div(100);// 34 % Allocation
 
-        // Address 
-        owner = msg.sender;        
+        // Address      
         crowdsaleAddress = _crowdsaleAddress;
         teamAddress = _teamAddress;
         companyAddress = _companyAddress;
@@ -374,13 +369,14 @@ contract TuurntCrowdsale is Ownable {
     uint256 public MIN_INVESTMENT = 0.2 ether;
     uint256 public MAX_INVESTMENT = 10 ether;
     uint256 public ethRaised;
-    uint256 public ethRate = 86300;
+    uint256 public ethRate = 863;
     uint256 public startCrowdsaleDate;
     uint256 public endCrowdsaleDate;
     uint256 public startPresaleDate;
     uint256 public endPresaleDate;
     uint256 public soldToken = 0;
-    uint256 public amount;
+    uint256 public softCap = 600 ether;
+    uint256 public hardCap = 12500 ether;                                                             
 
     //addresses
     address public beneficiaryAddress;
@@ -411,11 +407,11 @@ contract TuurntCrowdsale is Ownable {
     * set the timeslot for the Pre-ICO and ICO.
     * @param _beneficiaryAddress The address to transfer the ether that is raised during crowdsale. 
     */
-    function TuurntCrowdsale(address _beneficiaryAddress) public {
+    function TuurntCrowdsale(address _beneficiaryAddress, uint256 startDate) public {
         require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
-        startPresaleDate = now;
-        endPresaleDate = now + 2 days;
+        startPresaleDate = startDate;
+        endPresaleDate = startPresaleDate + 2 days;
         startCrowdsaleDate = endPresaleDate; 
         endCrowdsaleDate = startCrowdsaleDate + 6 weeks;
     }
@@ -424,12 +420,12 @@ contract TuurntCrowdsale is Ownable {
     * @dev Allow founder to set the token contract address.
     * @param _tokenAddress The address of token contract.
     */
-    function setTokenAddress(address _tokenAddress) onlyOwner public returns(bool) {
+    function setTokenAddress(address _tokenAddress) onlyOwner public {
         require(tokenAddress == address(0));
         token = TuurntToken(_tokenAddress);
         tokenAddress = _tokenAddress;
         LogTokenSet(token, now);
-        return true;
+        
     }
 
     /**
@@ -446,6 +442,15 @@ contract TuurntCrowdsale is Ownable {
     */
     function changeMaxInvestment(uint256 _newMaxInvestment) onlyOwner public {
         MAX_INVESTMENT = _newMaxInvestment;
+    }
+
+     /**
+    * @dev Allow founder to change the ether rate.
+    * @param _newEthRate current rate of ether. 
+    */
+    function setEtherRate(uint256 _newEthRate) onlyOwner public {
+        require(_newEthRate != 0);
+        ethRate = _newEthRate;
     }
 
     /**
@@ -492,8 +497,7 @@ contract TuurntCrowdsale is Ownable {
     */
     function getTokenAmount(uint256 _investedAmount) view public returns(uint256) {
         uint256 tokenRate = getRate();
-        uint256 tokenAmount;
-        tokenAmount = _investedAmount.mul((ethRate.div(tokenRate)));
+        uint256 tokenAmount = _investedAmount.mul((ethRate.mul(100)).div(tokenRate));
         return tokenAmount;
     }
 
@@ -505,10 +509,12 @@ contract TuurntCrowdsale is Ownable {
     public 
     payable
     returns(bool)
-    {
+    {   
+        uint256 amount;
         require(_investorAddress != address(0));
         require(tokenAddress != address(0));
         require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
+        require(ethRaised.add(msg.value) <= hardCap);
         amount = getTokenAmount(msg.value);
         require(fundTransfer(msg.value));
         require(token.transfer(_investorAddress, amount));
@@ -523,9 +529,11 @@ contract TuurntCrowdsale is Ownable {
     * tokens of crowdfund to the company address. 
     */
     function endCrowdfund(address companyAddress) onlyOwner public returns(bool) {
-        require(now > endCrowdsaleDate);
-        uint256 remaining = token.balanceOf(this);
-        require(token.transfer(companyAddress, remaining));
+        if (now >= endCrowdsaleDate || ethRaised >= hardCap) {
+            uint256 remaining = token.balanceOf(this);
+            require(token.transfer(companyAddress, remaining));
+        }
+      
     }
 
 }

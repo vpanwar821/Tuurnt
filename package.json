@@ -15,10 +15,11 @@
     "bignumber.js": "4.0.2",
     "ethereumjs-testrpc": "4.1.1",
     "ethereumjs-util": "^5.1.4",
+    "ganache-cli": "^6.0.3",
     "solc": "0.4.19",
+    "solidity-coverage": "^0.4.15",
     "truffle": "4.0.1",
     "truffle-hdwallet-provider": "0.0.3",
-    "ganache-cli": "^6.0.3",
     "zeppelin-solidity": "1.7.0"
   },
   "devDependencies": {
@@ -30,7 +31,8 @@
     "test": "npm run ganache-cli:dev && truffle test --network development",
     "flatten": "sol-merger './contracts/*.sol' ./flat",
     "ganache-cli:dev": "scripts/ganache-cli.sh",
-    "ganache-cli:coverage": "SOLIDITY_COVERAGE=true scripts/ganache-cli.sh"
+    "ganache-cli:coverage": "SOLIDITY_COVERAGE=true scripts/ganache-cli.sh",
+    "coverage": "./node_modules/.bin/solidity-coverage"
   },
   "repository": {
     "type": "git",

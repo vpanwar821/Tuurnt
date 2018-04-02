@@ -18,10 +18,9 @@ contract TuurntToken is StandardToken, DetailedERC20 {
     uint256 public tokenAllocToTeam;
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
-    uint256 public remainingTokens;
+    
 
     // addresses
-    address public owner;
     address public crowdsaleAddress;
     address public teamAddress;
     address public companyAddress;
@@ -42,15 +41,11 @@ contract TuurntToken is StandardToken, DetailedERC20 {
         require(_teamAddress != address(0));
         require(_companyAddress != address(0));
         totalSupply_ = 500000000 * 10 ** 18;
-        _name = "Tuurnt Token";
-        _symbol = "TRT";
-        _decimals = 18; 
         tokenAllocToTeam = (totalSupply_.mul(33)).div(100);     // 33 % Allocation
         tokenAllocToCompany = (totalSupply_.mul(33)).div(100);  // 33 % Allocation 
         tokenAllocToCrowdsale = (totalSupply_.mul(34)).div(100);// 34 % Allocation
 
-        // Address 
-        owner = msg.sender;        
+        // Address      
         crowdsaleAddress = _crowdsaleAddress;
         teamAddress = _teamAddress;
         companyAddress = _companyAddress;
