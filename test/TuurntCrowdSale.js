@@ -239,7 +239,7 @@ contract('TuurntCrowsale',accounts =>{
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    
+        //For testing,hardCap is set to 8 ether 
         try{
             await web3.eth.sendTransaction({
                 from:holder1,
