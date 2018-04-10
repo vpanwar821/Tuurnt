@@ -34,9 +34,15 @@ contract TuurntCrowdsale is Ownable {
     address public beneficiaryAddress;
     address public tokenAddress;
 
+    bool private isPresaleActive = false;
+    bool private isCrowdsaleActive = false;
+    bool private isGapActive = false;
+
     event TokenBought(address indexed _investor, uint256 _token, uint256 _timestamp);
     event LogTokenSet(address _token, uint256 _timestamp);
-    enum State {PreSale, CrowdSale, Finish}
+    event LogState(uint256 _timestamp);
+
+    enum State { PreSale, Gap, CrowdSale, Finish }
 
     /**
     * @dev Transfer the ether to the beneficiaryAddress.
@@ -59,13 +65,12 @@ contract TuurntCrowdsale is Ownable {
     * set the timeslot for the Pre-ICO and ICO.
     * @param _beneficiaryAddress The address to transfer the ether that is raised during crowdsale. 
     */
-    function TuurntCrowdsale(address _beneficiaryAddress, uint256 startDate) public {
+    function TuurntCrowdsale(address _beneficiaryAddress, uint256 _startDate) public {
         require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
-        startPresaleDate = startDate;
+        startPresaleDate = _startDate;
         endPresaleDate = startPresaleDate + 2 days;
-        startCrowdsaleDate = endPresaleDate; 
-        endCrowdsaleDate = startCrowdsaleDate + 6 weeks;
+        isPresaleActive = !isPresaleActive;
     }
 
     /**
@@ -77,7 +82,29 @@ contract TuurntCrowdsale is Ownable {
         token = TuurntToken(_tokenAddress);
         tokenAddress = _tokenAddress;
         LogTokenSet(token, now);
-        
+    }
+
+    /**
+    * @dev Allow founder to end the Presale. 
+    */
+    function endPresale() onlyOwner public {
+        require(tokenAddress != address(0));
+        require(now > endPresaleDate);  
+        require(isPresaleActive == true);
+        require(isGapActive == false);
+        isGapActive = !isGapActive;
+        isPresaleActive = !isPresaleActive;
+    }
+
+    /**
+    * @dev Allow founder to start the Crowdsale.
+    */
+    function activeCrowdsale() onlyOwner public {
+        require(isGapActive == true);
+        require(isCrowdsaleActive == false);
+        startCrowdsaleDate = now;
+        endCrowdsaleDate = now + 6 weeks;
+        isCrowdsaleActive = !isCrowdsaleActive;
     }
 
     /**
@@ -110,15 +137,18 @@ contract TuurntCrowdsale is Ownable {
     */
     function getState() view public returns(State) {
 
-        if (now >= startPresaleDate && now <= endPresaleDate) {
+        if (isPresaleActive == true) {
+            require(now >= startPresaleDate && now <= endPresaleDate);
             return State.PreSale;
         } 
-        if (now >= startCrowdsaleDate && now <= endCrowdsaleDate) {
+        if (isCrowdsaleActive == true) {
+            require(now >= startCrowdsaleDate && now <= endCrowdsaleDate);
             return State.CrowdSale;
-        } else {
-            return State.Finish;
         }
-
+        if (isGapActive == true) {
+            return State.Gap;
+        }
+        return State.Finish;
     }
 
     /**
@@ -138,7 +168,6 @@ contract TuurntCrowdsale is Ownable {
             if (now >= startCrowdsaleDate) {
                 return 7;
             }
-            return 0;
         }
     } 
 
@@ -162,18 +191,23 @@ contract TuurntCrowdsale is Ownable {
     payable
     returns(bool)
     {   
-        uint256 amount;
-        require(_investorAddress != address(0));
-        require(tokenAddress != address(0));
-        require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
-        require(ethRaised.add(msg.value) <= hardCap);
-        amount = getTokenAmount(msg.value);
-        require(fundTransfer(msg.value));
-        require(token.transfer(_investorAddress, amount));
-        ethRaised = ethRaised.add(msg.value);
-        soldToken = soldToken.add(amount);
-        TokenBought(_investorAddress,amount,now);
-        return true;
+        LogState(now);
+        if ((getState() == State.PreSale) || (getState() == State.CrowdSale)) {
+            uint256 amount;
+            require(_investorAddress != address(0));
+            require(tokenAddress != address(0));
+            require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
+            require(ethRaised.add(msg.value) <= hardCap);
+            amount = getTokenAmount(msg.value);
+            require(fundTransfer(msg.value));
+            require(token.transfer(_investorAddress, amount));
+            ethRaised = ethRaised.add(msg.value);
+            soldToken = soldToken.add(amount);
+            TokenBought(_investorAddress,amount,now);
+            return true;
+        }else {
+            revert();
+        }
     }
 
     /**

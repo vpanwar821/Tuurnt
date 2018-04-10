@@ -17,6 +17,7 @@ let name;
 let symbol;
 let decimals;
 let startDate;
+let timeSnapshot;
 
 contract('TuurntCrowsale',accounts =>{ 
     before(async()=>{
@@ -43,10 +44,9 @@ contract('TuurntCrowsale',accounts =>{
 
         let startPresaleDate = new BigNumber(await Tuurnt.startPresaleDate()).toNumber();
         let endPresaleDate = new BigNumber(await Tuurnt.endPresaleDate()).toNumber();
+        console.log("Start",startPresaleDate);
+        console.log("End",endPresaleDate);
         assert.equal(await Utils.timeDifference(endPresaleDate,startPresaleDate),172800);
-        let startCrowdsaleDate = new BigNumber(await Tuurnt.startCrowdsaleDate()).toNumber();
-        let endCrowdsaleDate = new BigNumber(await Tuurnt.endCrowdsaleDate()).toNumber();
-        assert.equal(await Utils.timeDifference(endCrowdsaleDate,startCrowdsaleDate),3628800);
 
     });
 
@@ -119,9 +119,11 @@ contract('TuurntCrowsale',accounts =>{
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
+        timeSnapshot = await time.takeSnapshot();
+        console.log("timeSnapshot",timeSnapshot);
+        console.log("buy",web3.eth.getBlock('latest').timestamp);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-        
-        await time.increaseTime(13*24*60*60+50);
+        await time.increaseTime(6*24*60*60+50);
         await web3.eth.sendTransaction({
             from: holder1,
             to: Tuurnt.address,
@@ -132,10 +134,13 @@ contract('TuurntCrowsale',accounts =>{
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
 
-        
-
         await time.increaseTime(2*24*60*60+50);
-        
+        await Tuurnt.endPresale({from:founder});
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
+
+        await Tuurnt.activeCrowdsale({from:founder});
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);   //2 = crowdSale 
+
         await web3.eth.sendTransaction({
             from:holder2,
             to:Tuurnt.address,
@@ -169,7 +174,29 @@ contract('TuurntCrowsale',accounts =>{
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),3);
         assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),8630);
+        console.log("revert1",web3.eth.getBlock('latest').timestamp);
+        await time.revertToSnapshot(timeSnapshot);
+        console.log("revert2",web3.eth.getBlock('latest').timestamp);
+    });
 
+    it('buyTokens:trying to buy token in the Gap time(should fail).',async()=>{
+        console.log("Gap",web3.eth.getBlock('latest').timestamp);
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        
+        let TuurntToken = await TUURNT.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
+        console.log("Gap2",web3.eth.getBlock('latest').timestamp);
+        // console.log("Gap3",web3.eth.getBlock('latest').timestamp);
+        // await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        // await time.increaseTime(6*24*60*60+50);
+        // console.log("Gap4",web3.eth.getBlock('latest').timestamp);
+        // await web3.eth.sendTransaction({
+        //     from:holder1,
+        //     to:Tuurnt.address,
+        //     gas:300000,
+        //     value:web3.toWei('1','ether')
+        // });
+        // assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
+        // assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
 
     });
 
