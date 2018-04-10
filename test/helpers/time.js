@@ -2,23 +2,6 @@
 // aren’t included within the original RPC specification.
 // See https://github.com/ethereumjs/testrpc#implemented-methods
 
-// const increaseTime = (time) => {
-//     return new Promise((resolve, reject) => {
-//         web3.currentProvider.sendAsync({
-//             jsonrpc: '2.0',
-//             method: 'evm_increaseTime',
-//             params: [time], // Time increase param.
-//             id: new Date().getTime()
-//         }, (err) => {
-//             if (err) {
-//                 return reject(err);
-//             }
-
-//             resolve();
-//         });
-//     });
-// };
-
 function increaseTime (duration) {
     const id = Date.now();
   
@@ -42,7 +25,7 @@ function increaseTime (duration) {
     });
   }
 
-const takeSnapshot = () => {
+export default function takeSnapshot() {
     return new Promise((resolve, reject) => {
         web3.currentProvider.sendAsync({
             jsonrpc: '2.0',
@@ -59,7 +42,7 @@ const takeSnapshot = () => {
     });
 };
 
-const revertToSnapshot = (snapShotId) => {
+function revertToSnapshot(snapShotId) {
     return new Promise((resolve, reject) => {
         web3.currentProvider.sendAsync({
             jsonrpc: '2.0',
@@ -76,23 +59,4 @@ const revertToSnapshot = (snapShotId) => {
     });
 };
 
-const mine = () => {
-    return new Promise((resolve, reject) => {
-        web3.currentProvider.sendAsync({
-            jsonrpc: '2.0',
-            method: 'evm_mine',
-            params: [],
-            id: new Date().getTime()
-        }, (err) => {
-            if (err) {
-                return reject(err);
-            }
-
-            resolve();
-        });
-    });
-};
-
-export {increaseTime,takeSnapshot,revertToSnapshot,mine};
-
-
+  export { increaseTime, takeSnapshot, revertToSnapshot };
