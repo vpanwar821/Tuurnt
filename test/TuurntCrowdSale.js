@@ -34,24 +34,23 @@ contract('TuurntCrowsale',accounts =>{
         name = "Tuurnt Token";
         symbol = "TRT";
         decimals = 18; 
-        startDate = 1523750400;
         
     });
 
     it('Verify constructor', async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         let beneficiaryAddr = await Tuurnt.beneficiaryAddress();
         assert.equal(beneficiaryAddr,beneficiaryAddress);
 
         let startPresaleDate = new BigNumber(await Tuurnt.startPresaleDate()).toNumber();
         let endPresaleDate = new BigNumber(await Tuurnt.endPresaleDate()).toNumber();
-        console.log("Start",startPresaleDate);
-        console.log("End",endPresaleDate);
         assert.equal(await timeDifference(endPresaleDate,startPresaleDate),172800);
 
     });
 
     it("setTokenAddress:set the token contract address", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let TuurntToken = await TUURNT.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
@@ -60,6 +59,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("setTokenAddress:set the token contract address by a non founder(should fail)", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let TuurntToken = await TUURNT.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         try{
@@ -71,6 +71,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMinInvestment:should change the minimum investment", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
@@ -81,6 +82,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMinInvestment:try to change the minimum investment by the non-founder(should fail)", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
@@ -94,6 +96,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMaxInvestment:should change the maximum investment", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
         
@@ -104,6 +107,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("changeMaxInvestment:try to change the maximum investment by the non-founder(should fail)", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
         
@@ -117,6 +121,7 @@ contract('TuurntCrowsale',accounts =>{
     });
 
     it("buyToken:buy tokens in presale and crowdsale by transferring ether", async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
@@ -124,7 +129,7 @@ contract('TuurntCrowsale',accounts =>{
 
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
-        await increaseTime(duration.days(6));
+        await increaseTime(duration.seconds(100));
         
         await web3.eth.sendTransaction({
             from: holder1,
@@ -136,104 +141,137 @@ contract('TuurntCrowsale',accounts =>{
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
 
-        await increaseTime(duration.days(2));
-        await Tuurnt.endPresale({from:founder});
-        
+        await increaseTime(duration.days(3));
+       
         assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
 
-        await Tuurnt.activeCrowdsale({from:founder});
-        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);   //2 = crowdSale 
+        await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = crowdSalePhase1
 
         await web3.eth.sendTransaction({
-            from:holder2,
+            from: holder2,
+            to: Tuurnt.address,
+            gas: 300000,
+            value: web3.toWei('1', 'ether')
+        });
+
+        assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2);
+        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),12328);
+
+        await increaseTime(duration.days(8));
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+        
+        await Tuurnt.activeCrowdsalePhase2(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),3) //3 = crowdSalePhase2
+       
+        await web3.eth.sendTransaction({
+            from:holder3,
             to:Tuurnt.address,
             gas:300000,
             value:web3.toWei('0.5','ether')
         });
         
-        assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1.5);
-        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),6164);
-
-        await increaseTime(duration.days(7));
-        
-        await web3.eth.sendTransaction({
-            from:holder3,
-            to:Tuurnt.address,
-            gas:300000,
-            value:web3.toWei('0.5','ether')            
-        });
-        
-        assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2);
+        assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2.5);
         assert.equal((await TuurntToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(),5393.5);
 
-        await increaseTime(duration.days(14));
+        await increaseTime(duration.days(15));
         
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+
+        await Tuurnt.activeCrowdsalePhase3(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //4 = crowdSalePhase3
+       
         await web3.eth.sendTransaction({
             from:holder4,
             to:Tuurnt.address,
             gas:300000,
-            value:web3.toWei('1','ether')            
+            value:web3.toWei('0.5','ether')
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),3);
-        assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),8630);
+        assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),4315);
         
-        await revertToSnapshot(timeSnapshot);
+       
     });
 
     it('buyTokens:trying to buy token in the Gap time(should fail).',async()=> {
+        startDate = web3.eth.getBlock('latest').timestamp;
         let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
-        await increaseTime(duration.days(6));
-
+        await increaseTime(duration.seconds(100));
+        
         await web3.eth.sendTransaction({
-            from:holder1,
-            to:Tuurnt.address,
-            gas:300000,
-            value:web3.toWei('1','ether')
+            from: holder1,
+            to: Tuurnt.address,
+            gas: 300000,
+            value: web3.toWei('1','ether')
         });
+        
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
 
+        await increaseTime(duration.days(3));
+       
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
+
+        try{
+            await web3.eth.sendTransaction({
+               from:holder1,
+               to:Tuurnt.address,
+               gas:300000,
+               value:web3.toWei('1','ether') 
+            });
+        }
+        catch(error){
+            
+            ensureException(error);
+        }
+
     });
 
-    // it('buyTokens:trying to buy token without setting the token address(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+    it('buyTokens:trying to buy token without setting the token address(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);        
+        try{
+            await web3.eth.sendTransaction({
+                from: holder1,
+                to: Tuurnt.address,
+                gas: 300000,
+                value: web3.toWei('1', 'ether')
+            });
+        }
+        catch(error){
+           
+            ensureException(error);
+        }
+    });
 
-    //     try{
-    //         await web3.eth.sendTransaction({
-    //             from: holder1,
-    //             to: Tuurnt.address,
-    //             gas: 300000,
-    //             value: web3.toWei('1', 'ether')
-    //         });
-    //     }
-    //     catch(error){
-    //         ensureException(error);
-    //     }
-    // });
-
-    // it('buyTokens:trying to buy token with ether less than the minimum investment(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    //     try{
-    //         await web3.eth.sendTransaction({
-    //             from: holder1,
-    //             to: Tuurnt.address,
-    //             gas: 300000,
-    //             value: web3.toWei('0.1', 'ether')
-    //         });
-    //     }
-    //     catch(error){
+    it('buyTokens:trying to buy token with ether less than the minimum investment(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        try{
+            await web3.eth.sendTransaction({
+                from: holder1,
+                to: Tuurnt.address,
+                gas: 300000,
+                value: web3.toWei('0.1', 'ether')
+            });
+        }
+        catch(error){
             
-    //         ensureException(error);
-    //     }
-    // });
+            ensureException(error);
+        }
+    });
 
     // it('buyTokens:trying to buy token when hard cap has been reached(should fail)',async()=>{
     //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
@@ -249,144 +287,252 @@ contract('TuurntCrowsale',accounts =>{
     //         });
     //     }
     //     catch(error){
-            
+    //         console.log("hard cap",error);
     //         ensureException(error);
     //     }
 
     // });
 
-    // it('buyTokens:trying to buy token with ether greater than the maximum investment(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+    it('buyTokens:trying to buy token with ether greater than the maximum investment(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
-    //     try{
-    //         await web3.eth.sendTransaction({
-    //             from: holder1,
-    //             to: Tuurnt.address,
-    //             gas: 300000,
-    //             value: web3.toWei('11', 'ether')
-    //         });
-    //     }
-    //     catch(error){
-    //         ensureException(error);
-    //     }
-    // });
+        try{
+            await web3.eth.sendTransaction({
+                from: holder1,
+                to: Tuurnt.address,
+                gas: 300000,
+                value: web3.toWei('11', 'ether')
+            });
+        }
+        catch(error){
+           
+            ensureException(error);
+        }
+    });
 
-    // it('buyTokens:trying to buy token after the completion of crowdsale(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+    it('buyTokens:trying to buy token after the completion of crowdsale(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
-    //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    //     await increaseTime(duration.days(50));
-        
-    //     try{
-    //         await web3.eth.sendTransaction({
-    //             from: holder1,
-    //             to: Tuurnt.address,
-    //             gas: 300000,
-    //             value: web3.toWei('1', 'ether')
-    //         });
-    //     }
-    //     catch(error){
-    //        ensureException(error);
-    //     }
-    // });
-
-    // it('endCrowdfund:Should end the crowdfund after the completion of crowdsale and transfer the remaining tokens to the company address', async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-        
-    //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-        
-    //     await increaseTime(duration.days(50));
-        
-    //     await Tuurnt.endCrowdfund(companyAddress,{from:founder});
-    //     assert.equal(await TuurntToken.balanceOf.call(Tuurnt.address),0);
-    //     assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),335000000);
-    
-    // });
-
-    // // it('endCrowdfund:Should end the crowdfund when hardcap has been reached and transfer the remaining tokens the company address', async() => {
-    // //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
-    // //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    // //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    // //     await web3.eth.sendTransaction({
-    // //         from:holder2,
-    // //         to:Tuurnt.address,
-    // //         gas:300000,
-    // //         value:web3.toWei('16668','ether')
-    // //     });
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        await increaseTime(duration.days(3));
        
-    // //     await Tuurnt.endCrowdfund(companyAddress,{from:founder});
-    // //     assert.equal((await TuurntToken.balanceOf.call(Tuurnt.address)).dividedBy(new BigNumber(10).pow(18)).toNumber(),0);
-    // //     assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),334856170);
-        
-    // // });
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
 
-    // it('endCrowdfund:trying to end the crowdfund by a non founder(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
         
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = crowdSalePhase1
+
+        await increaseTime(duration.days(8));
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+        
+        await Tuurnt.activeCrowdsalePhase2(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),3) //3 = crowdSalePhase2
+
+        await increaseTime(duration.days(15));
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+
+        await Tuurnt.activeCrowdsalePhase3(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //4 = crowdSalePhase3
+        
+        await increaseTime(duration.days(50));
+        
+        try{
+            await web3.eth.sendTransaction({
+                from: holder1,
+                to: Tuurnt.address,
+                gas: 300000,
+                value: web3.toWei('1', 'ether')
+            });
+        }
+        catch(error){
+            
+           ensureException(error);
+        }
+    });
+
+    it('endCrowdfund:Should end the crowdfund after the completion of crowdsale and transfer the remaining tokens to the company address', async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        
+        await increaseTime(duration.days(3));
+       
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
+
+        await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = crowdSalePhase1
+
+        await increaseTime(duration.days(8));
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+        
+        await Tuurnt.activeCrowdsalePhase2(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),3) //3 = crowdSalePhase2
+
+        await increaseTime(duration.days(15));
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+
+        await Tuurnt.activeCrowdsalePhase3(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //4 = crowdSalePhase3
+
+        await increaseTime(duration.days(50));
+        
+        await Tuurnt.endCrowdfund(companyAddress,{from:founder});
+        assert.equal(await TuurntToken.balanceOf.call(Tuurnt.address),0);
+        assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),335000000);
+    
+    });
+
+    // it('endCrowdfund:Should end the crowdfund when hardcap has been reached and transfer the remaining tokens the company address', async() => {
+    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
     //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    //     await increaseTime(duration.days(50));
+    //     await web3.eth.sendTransaction({
+    //         from:holder2,
+    //         to:Tuurnt.address,
+    //         gas:300000,
+    //         value:web3.toWei('16668','ether')
+    //     });
+       
+    //     await Tuurnt.endCrowdfund(companyAddress,{from:founder});
+    //     assert.equal((await TuurntToken.balanceOf.call(Tuurnt.address)).dividedBy(new BigNumber(10).pow(18)).toNumber(),0);
+    //     assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),334856170);
         
-    //     try{
-    //         await Tuurnt.endCrowdfund(companyAddress,{from:holder1});
-    //     }
-    //     catch(error){
-    //         ensureException(error);
-    //     }
     // });
 
-    // it('endCrowdfund:trying to end the crowdfund before the crowdsale(should fail) and before reaching the hardcap',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+    it('endCrowdfund:trying to end the crowdfund by a non founder(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+         
+        await increaseTime(duration.days(3));
+       
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
+
+        await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = crowdSalePhase1
+
+        await increaseTime(duration.days(8));
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+        
+        await Tuurnt.activeCrowdsalePhase2(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),3) //3 = crowdSalePhase2
+
+        await increaseTime(duration.days(15));
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+
+        await Tuurnt.activeCrowdsalePhase3(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //4 = crowdSalePhase3
+
+        await increaseTime(duration.days(50));
+        
+        try{
+            await Tuurnt.endCrowdfund(companyAddress,{from:holder1});
+        }
+        catch(error){
+            
+            ensureException(error);
+        }
+    });
+
+    it('endCrowdfund:trying to end the crowdfund before the crowdsale(should fail) and before reaching the hardcap',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+         
+        await increaseTime(duration.days(3));
+       
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Gap
+
+        await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = crowdSalePhase1
+
+        await increaseTime(duration.days(8));
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+        
+        await Tuurnt.activeCrowdsalePhase2(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),3) //3 = crowdSalePhase2
+
+        await increaseTime(duration.days(15));
+        
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),1);
+
+        await Tuurnt.activeCrowdsalePhase3(web3.eth.getBlock('latest').timestamp,{from:founder});
+
+        assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //4 = crowdSalePhase3
+        
+        try{
+            await Tuurnt.endCrowdfund(companyAddress,{from:founder});
+        }
+        catch(error){
+
+            ensureException(error);
+        }
+    });
+
+    // it('endCrowdfund:trying to end the crowdfund before the crowdsale but reach the hardcap',async() => {
+    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
+    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
     //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    //     await increaseTime(duration.days(42));
-        
-    //     try{
-    //         await Tuurnt.endCrowdfund(companyAddress,{from:founder});
-    //     }
-    //     catch(error){
-    //         ensureException(error);
-    //     }
+    //     await time.increaseTime(7*6*24*60*60);
+    //     await web3.eth.sendTransaction({
+    //                 from:holder2,
+    //                 to:Tuurnt.address,
+    //                 gas:300000,
+    //                 value:web3.toWei('10','ether')
+    //             });
+    //     await Tuurnt.endCrowdfund(companyAddress,{from:founder});
+    //     assert.equal((await TuurntToken.balanceOf.call(Tuurnt.address)).dividedBy(new BigNumber(10).pow(18)).toNumber(),0);
+    //     assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),334913700);
     // });
 
-    // // it('endCrowdfund:trying to end the crowdfund before the crowdsale but reach the hardcap',async() => {
-    // //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress);
-    // //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    // //     await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-    // //     await time.increaseTime(7*6*24*60*60);
-    // //     await web3.eth.sendTransaction({
-    // //                 from:holder2,
-    // //                 to:Tuurnt.address,
-    // //                 gas:300000,
-    // //                 value:web3.toWei('10','ether')
-    // //             });
-    // //     await Tuurnt.endCrowdfund(companyAddress,{from:founder});
-    // //     assert.equal((await TuurntToken.balanceOf.call(Tuurnt.address)).dividedBy(new BigNumber(10).pow(18)).toNumber(),0);
-    // //     assert.equal((await TuurntToken.balanceOf.call(companyAddress)).dividedBy(new BigNumber(10).pow(18)).toNumber(),334913700);
-    // // });
+    it('changeEtherRate:should change the ether rate by the founder',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        let newEthrate = 630;
+        await Tuurnt.setEtherRate(new BigNumber(newEthrate).times(new BigNumber(10).pow(18)),{from:founder});
+        assert.equal((await Tuurnt.ethRate()).dividedBy(new BigNumber(10).pow(18)).toNumber(),630);
+    });
 
-    // it('changeEtherRate:should change the ether rate by the founder',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    //     let newEthrate = 630;
-    //     await Tuurnt.setEtherRate(new BigNumber(newEthrate).times(new BigNumber(10).pow(18)),{from:founder});
-    //     assert.equal((await Tuurnt.ethRate()).dividedBy(new BigNumber(10).pow(18)).toNumber(),630);
-    // });
-
-    // it('changeEtherRate:trying to change the ether rate by a non-founder(should fail)',async() => {
-    //     let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-    //     let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-    //     let newEthrate = 630;
-    //     try{
-    //     await Tuurnt.setEtherRate(new BigNumber(newEthrate).times(new BigNumber(10).pow(18)),{from:holder1});
-    //     }
-    //     catch(error){
-    //         ensureException(error);
-    //     }
-    // });
+    it('changeEtherRate:trying to change the ether rate by a non-founder(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
+        let newEthrate = 630;
+        try{
+        await Tuurnt.setEtherRate(new BigNumber(newEthrate).times(new BigNumber(10).pow(18)),{from:holder1});
+        }
+        catch(error){
+            
+            ensureException(error);
+        }
+    });
 });
