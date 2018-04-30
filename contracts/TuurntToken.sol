@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 /**
 * @title TuurntToken 
@@ -6,9 +6,9 @@ pragma solidity ^0.4.18;
 * Tuurnt token.
 */
 
-import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
-import 'zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol';
-import 'zeppelin-solidity/contracts/math/Math.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol';
+import 'openzeppelin-solidity/contracts/math/Math.sol';
 
 contract TuurntToken is StandardToken, DetailedERC20 {
 
@@ -58,9 +58,9 @@ contract TuurntToken is StandardToken, DetailedERC20 {
         balances[teamAddress] = tokenAllocToTeam; 
 
         //transfer event
-        Transfer(address(0), crowdsaleAddress, tokenAllocToCrowdsale);
-        Transfer(address(0), companyAddress, tokenAllocToCompany);
-        Transfer(address(0), teamAddress, tokenAllocToTeam);
+        emit Transfer(address(0), crowdsaleAddress, tokenAllocToCrowdsale);
+        emit Transfer(address(0), companyAddress, tokenAllocToCompany);
+        emit Transfer(address(0), teamAddress, tokenAllocToTeam);
         
     }  
 }
