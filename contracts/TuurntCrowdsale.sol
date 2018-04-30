@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 /**
 * @title TuurntCrowdsale
@@ -6,8 +6,8 @@ pragma solidity ^0.4.18;
 * contains the function to buy token.  
 */
 
-import 'zeppelin-solidity/contracts/math/Math.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/math/Math.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import './TuurntToken.sol';
 
 
@@ -87,7 +87,7 @@ contract TuurntCrowdsale is Ownable {
         require(tokenAddress == address(0));
         token = TuurntToken(_tokenAddress);
         tokenAddress = _tokenAddress;
-        LogTokenSet(token, now);
+        emit LogTokenSet(token, now);
     }
 
    
@@ -220,7 +220,7 @@ contract TuurntCrowdsale is Ownable {
     payable
     returns(bool)
     {   
-        LogState(now);
+        emit LogState(now);
         if ((getState() == State.PreSale) || (getState() == State.CrowdSalePhase1) || (getState() == State.CrowdSalePhase2) || (getState() == State.CrowdSalePhase3)) {
             uint256 amount;
             require(_investorAddress != address(0));
@@ -232,7 +232,7 @@ contract TuurntCrowdsale is Ownable {
             require(token.transfer(_investorAddress, amount));
             ethRaised = ethRaised.add(msg.value);
             soldToken = soldToken.add(amount);
-            TokenBought(_investorAddress,amount,now);
+            emit TokenBought(_investorAddress,amount,now);
             return true;
         }else {
             revert();
