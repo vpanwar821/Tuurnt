@@ -28,7 +28,7 @@
   },
   "scripts": {
     "compile": "truffle compile",
-    "test": "npm run ganache-cli:dev && truffle test --network development",
+    "test": "npm run ganache-cli:dev & truffle test --network development",
     "flatten": "sol-merger './contracts/*.sol' ./flat",
     "ganache-cli:dev": "node_modules/.bin/ganache-cli -i 15 --gasLimit 50000000000",
     "ganache-cli:coverage": "SOLIDITY_COVERAGE=true scripts/ganache-cli.sh",
