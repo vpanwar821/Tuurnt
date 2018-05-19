@@ -30,14 +30,14 @@ contract TuurntCrowdsale is Ownable {
     uint256 public endCrowdsalePhase3Date;
     uint256 public startPresaleDate;
     uint256 public endPresaleDate;
-    uint256 public soldToken = 0;
-    uint256 public softCap = 600 ether;
-    uint256 public hardCap = 12500 ether;                                                             
+    uint256 public startPrivatesaleDate;
+    uint256 public soldToken = 0;                                                           
 
     //addresses
     address public beneficiaryAddress;
     address public tokenAddress;
 
+    bool private isPrivatesaleActive = false;
     bool private isPresaleActive = false;
     bool private isPhase1CrowdsaleActive = false;
     bool private isPhase2CrowdsaleActive = false;
@@ -48,7 +48,7 @@ contract TuurntCrowdsale is Ownable {
     event LogTokenSet(address _token, uint256 _timestamp);
     event LogState(uint256 _timestamp);
 
-    enum State { PreSale, Gap, CrowdSalePhase1, CrowdSalePhase2, CrowdSalePhase3 }
+    enum State { PrivateSale, PreSale, Gap, CrowdSalePhase1, CrowdSalePhase2, CrowdSalePhase3 }
 
     /**
     * @dev Transfer the ether to the beneficiaryAddress.
@@ -74,9 +74,16 @@ contract TuurntCrowdsale is Ownable {
     function TuurntCrowdsale(address _beneficiaryAddress, uint256 _startDate) public {
         require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
-        startPresaleDate = _startDate;
-        endPresaleDate = startPresaleDate + 2 days;
-        isPresaleActive = !isPresaleActive;
+        startPrivatesaleDate = _startDate;
+        isPrivatesaleActive = !isPrivatesaleActive;
+    }
+
+    /**
+    * @dev Allow founder to end the Private sale.
+    */
+    function endPrivatesale() onlyOwner public {
+        require(isPrivatesaleActive == true);
+        isPrivatesaleActive = !isPrivatesaleActive;
     }
 
     /**
@@ -90,6 +97,16 @@ contract TuurntCrowdsale is Ownable {
         emit LogTokenSet(token, now);
     }
 
+     /**
+    * @dev Allow founder to start the Presale.
+    */
+    function activePresale(uint256 _presaleDate) onlyOwner public {
+        require(isPresaleActive == false);
+        require(isPrivatesaleActive == false);
+        startPresaleDate = _presaleDate;
+        endPresaleDate = startPresaleDate + 2 days;
+        isPresaleActive = !isPresaleActive;
+    }
    
     /**
     * @dev Allow founder to start the Crowdsale phase1.
@@ -161,6 +178,9 @@ contract TuurntCrowdsale is Ownable {
 
     function getState() view public returns(State) {
         
+        if(now >= startPrivatesaleDate && isPrivatesaleActive == true) {
+            return State.PrivateSale;
+        }
         if (now >= startPresaleDate && now <= endPresaleDate) {
             require(isPresaleActive == true);
             return State.PreSale;
@@ -186,6 +206,9 @@ contract TuurntCrowdsale is Ownable {
     */
 
     function getRate() view public returns(uint256) {
+        if (getState() == State.PrivateSale) {
+            return 5;
+        }
         if (getState() == State.PreSale) {
             return 6;
         }
@@ -221,12 +244,15 @@ contract TuurntCrowdsale is Ownable {
     returns(bool)
     {   
         emit LogState(now);
-        if ((getState() == State.PreSale) || (getState() == State.CrowdSalePhase1) || (getState() == State.CrowdSalePhase2) || (getState() == State.CrowdSalePhase3)) {
+        if ((getState() == State.PreSale) ||
+            (getState() == State.CrowdSalePhase1) || 
+            (getState() == State.CrowdSalePhase2) || 
+            (getState() == State.CrowdSalePhase3) || 
+            (getState() == State.PrivateSale)) {
             uint256 amount;
             require(_investorAddress != address(0));
             require(tokenAddress != address(0));
             require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
-            require(ethRaised.add(msg.value) <= hardCap);
             amount = getTokenAmount(msg.value);
             require(fundTransfer(msg.value));
             require(token.transfer(_investorAddress, amount));
@@ -245,7 +271,7 @@ contract TuurntCrowdsale is Ownable {
     */
     function endCrowdfund(address companyAddress) onlyOwner public returns(bool) {
         require(isPhase3CrowdsaleActive == true);
-        require(now >= endCrowdsalePhase3Date || ethRaised >= hardCap); 
+        require(now >= endCrowdsalePhase3Date); 
         uint256 remaining = token.balanceOf(this);
         require(token.transfer(companyAddress, remaining));
     }
