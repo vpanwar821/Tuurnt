@@ -95,31 +95,6 @@ contract('TuurntCrowsale',accounts =>{
       
     });
 
-    it("changeMaxInvestment:should change the maximum investment", async() => {
-        startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-        assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
-        
-        await Tuurnt.changeMaxInvestment(new BigNumber(15).times(new BigNumber(10).pow(18)),{from:founder});
-
-        let maxValue = (await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber();
-        assert.strictEqual(maxValue,15); 
-    });
-
-    it("changeMaxInvestment:try to change the maximum investment by the non-founder(should fail)", async() => {
-        startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-        assert.strictEqual((await Tuurnt.MAX_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),10);
-        
-        try{  
-            await Tuurnt.changeMaxInvestment(new BigNumber(15).times(new BigNumber(10).pow(18)),{from:holder1});
-        }
-        catch(error){
-            
-            ensureException(error);
-        }
-      
-    });
 
     it("buyToken:buy tokens in privatesale,presale and crowdsale by transferring ether", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
@@ -348,26 +323,6 @@ contract('TuurntCrowsale',accounts =>{
         }
     });
 
-
-    it('buyTokens:trying to buy token with ether greater than the maximum investment(should fail)',async() => {
-        startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
-        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
-        
-        try{
-            await web3.eth.sendTransaction({
-                from: holder1,
-                to: Tuurnt.address,
-                gas: 300000,
-                value: web3.toWei('11', 'ether')
-            });
-        }
-        catch(error){
-       
-            ensureException(error);
-        }
-    });
 
     it('buyTokens:trying to buy token after the completion of crowdsale(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;

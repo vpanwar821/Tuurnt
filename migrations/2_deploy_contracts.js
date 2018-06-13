@@ -9,7 +9,7 @@ const symbol = 'TRT';
 const decimals = '18';
 const startDate = 1523750400;
 
-module.exports = async(deployer) =>  {
-    await deployer.deploy(TuurntToken, crowdsaleAddress, teamAddress, companyAddress, name, symbol, decimals);
-    await deployer.deploy(TuurntCrowdsale, beneficiaryAddress, startDate);
+module.exports = function(deployer)  {
+    deployer.deploy(TuurntToken, crowdsaleAddress, teamAddress, companyAddress, name, symbol, decimals);
+    deployer.deploy(TuurntCrowdsale, beneficiaryAddress, startDate);
 }

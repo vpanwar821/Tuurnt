@@ -19,7 +19,6 @@ contract TuurntCrowdsale is Ownable {
 
     //variable declaration
     uint256 public MIN_INVESTMENT = 0.2 ether;
-    uint256 public MAX_INVESTMENT = 10 ether;
     uint256 public ethRaised;
     uint256 public ethRate = 863;
     uint256 public startCrowdsalePhase1Date;
@@ -155,14 +154,6 @@ contract TuurntCrowdsale is Ownable {
         MIN_INVESTMENT = _newMinInvestment;
     }
 
-    /**
-    * @dev Allow founder to change the maximum investment of ether.
-    * @param _newMaxInvestment The value of new maximum ether investment. 
-    */
-    function changeMaxInvestment(uint256 _newMaxInvestment) onlyOwner public {
-        MAX_INVESTMENT = _newMaxInvestment;
-    }
-
      /**
     * @dev Allow founder to change the ether rate.
     * @param _newEthRate current rate of ether. 
@@ -252,7 +243,7 @@ contract TuurntCrowdsale is Ownable {
             uint256 amount;
             require(_investorAddress != address(0));
             require(tokenAddress != address(0));
-            require(msg.value >= MIN_INVESTMENT && msg.value <= MAX_INVESTMENT);
+            require(msg.value >= MIN_INVESTMENT);
             amount = getTokenAmount(msg.value);
             require(fundTransfer(msg.value));
             require(token.transfer(_investorAddress, amount));
