@@ -39,5 +39,3 @@ ICO bonus schedule:
 
 Minimum Investment: 0.2 ETH
 
-Maximum Investment: 10 ETH
-
