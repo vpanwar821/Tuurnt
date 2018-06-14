@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 /**
 * @title TuurntCrowdsale
@@ -70,7 +70,7 @@ contract TuurntCrowdsale is Ownable {
     * set the timeslot for the Pre-ICO and ICO.
     * @param _beneficiaryAddress The address to transfer the ether that is raised during crowdsale. 
     */
-    function TuurntCrowdsale(address _beneficiaryAddress, uint256 _startDate) public {
+    constructor(address _beneficiaryAddress, uint256 _startDate) public {
         require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
         startPrivatesaleDate = _startDate;

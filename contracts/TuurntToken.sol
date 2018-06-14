@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 /**
 * @title TuurntToken 
@@ -34,7 +34,7 @@ contract TuurntToken is StandardToken, DetailedERC20 {
     * @param _companyAddress The address of company 
     */
 
-    function TuurntToken(address _crowdsaleAddress, address _teamAddress, address _companyAddress, string _name, string _symbol, uint8 _decimals) public 
+    constructor(address _crowdsaleAddress, address _teamAddress, address _companyAddress, string _name, string _symbol, uint8 _decimals) public 
         DetailedERC20(_name, _symbol, _decimals)
     {
         require(_crowdsaleAddress != address(0));
