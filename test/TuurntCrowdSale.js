@@ -3,6 +3,7 @@ import { ensureException, duration, timeDifference } from './helpers/Utils';
 
 const TUURNT = artifacts.require('TuurntToken.sol');
 const CROWDSALE = artifacts.require('TuurntCrowdsale.sol');
+const WHITELIST = artifacts.require('TuurntWhitelist.sol');
 const BigNumber = require('bignumber.js');
 
 let founder;
@@ -41,7 +42,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('Verify constructor', async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let beneficiaryAddr = await Tuurnt.beneficiaryAddress();
         assert.equal(beneficiaryAddr,beneficiaryAddress);
 
@@ -49,8 +51,9 @@ contract('TuurntCrowsale',accounts =>{
 
     it("setTokenAddress:set the token contract address", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let TuurntToken = await TUURNT.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         let tokenAddr = await Tuurnt.tokenAddress();
         assert.equal(tokenAddr.toString(),TuurntToken.address);
@@ -58,8 +61,9 @@ contract('TuurntCrowsale',accounts =>{
 
     it("setTokenAddress:set the token contract address by a non founder(should fail)", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let TuurntToken = await TUURNT.new(crowdsaleAddress,teamAddress,companyAddress,name,symbol,decimals);
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         try{
             await Tuurnt.setTokenAddress(TuurntToken.address,{from:holder1});
         }
@@ -71,7 +75,9 @@ contract('TuurntCrowsale',accounts =>{
 
     it("changeMinInvestment:should change the minimum investment", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
         await Tuurnt.changeMinInvestment(new BigNumber(4).times(new BigNumber(10).pow(18)),{from:founder});
@@ -82,7 +88,9 @@ contract('TuurntCrowsale',accounts =>{
 
     it("changeMinInvestment:try to change the minimum investment by the non-founder(should fail)", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         assert.strictEqual((await Tuurnt.MIN_INVESTMENT()).dividedBy(new BigNumber(10).pow(18)).toNumber(),.2);
         
         try{  
@@ -98,7 +106,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it("buyToken:buy tokens in privatesale,presale and crowdsale by transferring ether", async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         timeSnapshot = await takeSnapshot();
@@ -106,6 +115,8 @@ contract('TuurntCrowsale',accounts =>{
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
         assert.strictEqual((await Tuurnt.getState()).toNumber(),0);
+
+        await Whitelist.addToWhitelist(holder1,{from:founder});
 
         await web3.eth.sendTransaction({
             from: holder1,
@@ -125,6 +136,8 @@ contract('TuurntCrowsale',accounts =>{
 
         assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Presale
 
+        await Whitelist.addToWhitelist(holder2,{from:founder});
+
         await web3.eth.sendTransaction({
             from: holder2,
             to: Tuurnt.address,
@@ -142,7 +155,9 @@ contract('TuurntCrowsale',accounts =>{
         await Tuurnt.activeCrowdsalePhase1(web3.eth.getBlock('latest').timestamp,{from:founder});
         
         assert.strictEqual((await Tuurnt.getState()).toNumber(),3);  //3 = crowdSalePhase1
-       
+        
+        await Whitelist.addToWhitelist(holder3,{from:founder});
+
         await web3.eth.sendTransaction({
             from: holder3,
             to: Tuurnt.address,
@@ -161,6 +176,8 @@ contract('TuurntCrowsale',accounts =>{
 
         assert.strictEqual((await Tuurnt.getState()).toNumber(),4) //3 = crowdSalePhase2
        
+        await Whitelist.addToWhitelist(holder4,{from:founder});
+
         await web3.eth.sendTransaction({
             from:holder4,
             to:Tuurnt.address,
@@ -179,6 +196,8 @@ contract('TuurntCrowsale',accounts =>{
 
         assert.strictEqual((await Tuurnt.getState()).toNumber(),5) //4 = crowdSalePhase3
        
+        await Whitelist.addToWhitelist(holder5,{from:founder});
+
         await web3.eth.sendTransaction({
             from:holder5,
             to:Tuurnt.address,
@@ -194,13 +213,16 @@ contract('TuurntCrowsale',accounts =>{
 
     it('buyTokens:trying to buy token in the Gap time after private sale(should fail).',async()=> {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
         await increaseTime(duration.seconds(100));
         
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
         await web3.eth.sendTransaction({
             from: holder1,
             to: Tuurnt.address,
@@ -232,13 +254,16 @@ contract('TuurntCrowsale',accounts =>{
 
     it('buyTokens:trying to buy token in the Gap time after presale(should fail).',async()=> {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
         
         await increaseTime(duration.seconds(100));
         
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
         await web3.eth.sendTransaction({
             from: holder1,
             to: Tuurnt.address,
@@ -257,6 +282,8 @@ contract('TuurntCrowsale',accounts =>{
 
         assert.strictEqual((await Tuurnt.getState()).toNumber(),1);  //1 = Presale
 
+        await Whitelist.addToWhitelist(holder2,{from:founder});
+
         await web3.eth.sendTransaction({
             from: holder2,
             to: Tuurnt.address,
@@ -271,9 +298,11 @@ contract('TuurntCrowsale',accounts =>{
        
         assert.strictEqual((await Tuurnt.getState()).toNumber(),2);  //2 = Gap
 
+        await Whitelist.addToWhitelist(holder3,{from:founder});
+
         try{
             await web3.eth.sendTransaction({
-               from:holder1,
+               from:holder3,
                to:Tuurnt.address,
                gas:300000,
                value:web3.toWei('1','ether') 
@@ -286,10 +315,50 @@ contract('TuurntCrowsale',accounts =>{
 
     });
 
-    it('buyTokens:trying to buy token without setting the token address(should fail)',async() => {
+    it('buyTokens:trying to buy token without setting the token address in whitelist(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
-        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);        
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);    
+        
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
+        await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
+        await web3.eth.sendTransaction({
+            from: holder1,
+            to: Tuurnt.address,
+            gas: 300000,
+            value: web3.toWei('1','ether')
+        });
+        
+        assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
+        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),17260);
+
+
+        try{
+            await web3.eth.sendTransaction({
+                from: holder2,
+                to: Tuurnt.address,
+                gas: 300000,
+                value: web3.toWei('1', 'ether')
+            });
+        }
+        catch(error){
+            ensureException(error);
+        }
+    });
+
+    it('buyTokens:trying to buy token and the address is not in the whitlist(should fail)',async() => {
+        startDate = web3.eth.getBlock('latest').timestamp;
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
+        let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);    
+        
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
         try{
             await web3.eth.sendTransaction({
                 from: holder1,
@@ -306,9 +375,11 @@ contract('TuurntCrowsale',accounts =>{
 
     it('buyTokens:trying to buy token with ether less than the minimum investment(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
+        await Whitelist.addToWhitelist(holder1,{from:founder});
         try{
             await web3.eth.sendTransaction({
                 from: holder1,
@@ -326,7 +397,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('buyTokens:trying to buy token after the completion of crowdsale(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
@@ -365,6 +437,8 @@ contract('TuurntCrowsale',accounts =>{
         
         await increaseTime(duration.days(50));
         
+        await Whitelist.addToWhitelist(holder1,{from:founder});
+
         try{
             await web3.eth.sendTransaction({
                 from: holder1,
@@ -381,7 +455,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('endCrowdfund:Should end the crowdfund after the completion of crowdsale and transfer the remaining tokens to the company address', async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
@@ -430,7 +505,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('endCrowdfund:trying to end the crowdfund by a non founder(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         
         await Tuurnt.setTokenAddress(TuurntToken.address,{from:founder});
@@ -481,7 +557,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('changeEtherRate:should change the ether rate by the founder',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         let newEthrate = 630;
         await Tuurnt.setEtherRate(new BigNumber(newEthrate).times(new BigNumber(10).pow(18)),{from:founder});
@@ -490,7 +567,8 @@ contract('TuurntCrowsale',accounts =>{
 
     it('changeEtherRate:trying to change the ether rate by a non-founder(should fail)',async() => {
         startDate = web3.eth.getBlock('latest').timestamp;
-        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,startDate);
+        let Whitelist = await WHITELIST.new();
+        let Tuurnt = await CROWDSALE.new(beneficiaryAddress,Whitelist.address,startDate);
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         let newEthrate = 630;
         try{
