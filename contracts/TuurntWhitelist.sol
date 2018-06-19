@@ -51,14 +51,5 @@ contract TuurntWhitelist is Ownable{
             return false;
     }
 
-    /**
-    * @dev Delete the whitelisted address from the list after airdrop.
-    * @param _userAddress Whitelisted user address
-    */
-    function deleteUserFromWhitelist(address _userAddress) public returns(bool){
-        require(msg.sender == airdrop);
-        whitelist[_userAddress] = false;
-        return true;
-    }
 }
 

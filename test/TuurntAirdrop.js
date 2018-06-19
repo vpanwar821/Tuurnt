@@ -73,7 +73,6 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder1});
 
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
 
         await whitelist.addToWhitelist(holder2,{from:founder});
@@ -81,7 +80,6 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder2});
 
         assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder2),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),200);
 
     });
@@ -100,28 +98,24 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder1});
 
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
 
         assert.equal(await whitelist.checkWhitelist(holder2),true);
         await airdrop.airdropToken({from:holder2});
 
         assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder2),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),200);
 
         assert.equal(await whitelist.checkWhitelist(holder3),true);
         await airdrop.airdropToken({from:holder3});
 
         assert.equal((await TuurntToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder3),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),300);
 
         assert.equal(await whitelist.checkWhitelist(holder4),true);
         await airdrop.airdropToken({from:holder4});
 
         assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder4),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),400);
 
 
@@ -136,7 +130,6 @@ contract("TuurntAirdrop",accounts => {
         let TuurntToken = await TUURNT.new(Tuurnt.address,teamAddress,companyAddress,name,symbol,decimals);
         await TuurntToken.transfer(airdrop.address,new BigNumber(10000).times(new BigNumber(10).pow(18)),{from:teamAddress});
        
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         await whitelist.setAirdropAddress(airdrop.address,{from:founder});
         await airdrop.setTokenAddress(TuurntToken.address,{from:founder});
         try{
@@ -197,7 +190,6 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder1});
 
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
 
         try{
@@ -222,7 +214,6 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder1});
 
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
 
         await airdrop.withdrawToken(holder2,{from:founder});
@@ -245,7 +236,6 @@ contract("TuurntAirdrop",accounts => {
         await airdrop.airdropToken({from:holder1});
 
         assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
-        assert.equal(await whitelist.checkWhitelist(holder1),false);
         assert.equal((await airdrop.totalDropAmount()).dividedBy(new BigNumber(10).pow(18)).toNumber(),100);
 
         try{

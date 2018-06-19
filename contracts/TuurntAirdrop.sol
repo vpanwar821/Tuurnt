@@ -11,6 +11,8 @@ contract TuurntAirdrop is Ownable {
     TuurntToken public token;
     WhitelistInterface public whitelist;
 
+    mapping(address=>bool) public userAddress;
+
     uint256 public totalDropAmount;
     uint256 public dropAmount = 100 * 10 ** 18;
     
@@ -35,9 +37,10 @@ contract TuurntAirdrop is Ownable {
     */
     function airdropToken() external{
         require(whitelist.checkWhitelist(msg.sender));
+        require(userAddress[msg.sender] == false);
         require(token.transfer(msg.sender,dropAmount));
         totalDropAmount = totalDropAmount.add(dropAmount);
-        require(whitelist.deleteUserFromWhitelist(msg.sender));
+        userAddress[msg.sender] = true;
     }
 
     /**
