@@ -7,6 +7,10 @@ contract TuurntWhitelist is Ownable{
     mapping(address => bool) public whitelist;
     address public airdrop;
     
+    /**
+    * @dev Set the airdrop contract address.
+    @param _airdrop Airdrop contract address
+    */
     function setAirdropAddress(address _airdrop) public onlyOwner{
         airdrop = _airdrop;
     }
@@ -36,6 +40,10 @@ contract TuurntWhitelist is Ownable{
         whitelist[_beneficiary] = false;
     }
 
+    /**
+    * @dev Check whether the address is in the whitelist.
+    * @param _whiteListAddress Whitelisted user address 
+    */
     function checkWhitelist(address _whiteListAddress) public view returns(bool){
         if(whitelist[_whiteListAddress])
             return true;
@@ -43,6 +51,10 @@ contract TuurntWhitelist is Ownable{
             return false;
     }
 
+    /**
+    * @dev Delete the whitelisted address from the list after airdrop.
+    * @param _userAddress Whitelisted user address
+    */
     function deleteUserFromWhitelist(address _userAddress) public returns(bool){
         require(msg.sender == airdrop);
         whitelist[_userAddress] = false;
