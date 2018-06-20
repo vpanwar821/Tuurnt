@@ -305,13 +305,12 @@ contract TuurntToken is StandardToken, DetailedERC20 {
     uint256 public tokenAllocToTeam;
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
-    
 
     // addresses
     address public crowdsaleAddress;
     address public teamAddress;
     address public companyAddress;
-   
+    
 
     /**
     * @dev The TuurntToken constructor set the orginal crowdsaleAddress,teamAddress and companyAddress and allocate the
@@ -338,16 +337,16 @@ contract TuurntToken is StandardToken, DetailedERC20 {
         companyAddress = _companyAddress;
         
 
-
         // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
         balances[companyAddress] = tokenAllocToCompany;
         balances[teamAddress] = tokenAllocToTeam; 
-
+       
         //transfer event
         emit Transfer(address(0), crowdsaleAddress, tokenAllocToCrowdsale);
         emit Transfer(address(0), companyAddress, tokenAllocToCompany);
         emit Transfer(address(0), teamAddress, tokenAllocToTeam);
+       
         
     }  
 }
