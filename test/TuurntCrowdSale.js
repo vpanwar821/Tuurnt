@@ -126,7 +126,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),17260);
+        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),10480);
 
         await Tuurnt.endPrivatesale({from:founder});
         
@@ -146,7 +146,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
 
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2);
-        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
+        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),8733);
         
         await increaseTime(duration.days(3));
        
@@ -166,7 +166,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
 
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),3);
-        assert.equal((await TuurntToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(),12328);
+        assert.equal((await TuurntToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(),7485);
        
         await increaseTime(duration.days(8));
         
@@ -186,7 +186,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),3.5);
-        assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),5393.5);
+        assert.equal((await TuurntToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(),3275);
 
         await increaseTime(duration.days(15));
         
@@ -206,7 +206,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),4);
-        assert.equal((await TuurntToken.balanceOf.call(holder5)).dividedBy(new BigNumber(10).pow(18)).toNumber(),4315);
+        assert.equal((await TuurntToken.balanceOf.call(holder5)).dividedBy(new BigNumber(10).pow(18)).toNumber(),2620);
         
        
     });
@@ -231,7 +231,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),17260);
+        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),10480);
 
         await Tuurnt.endPrivatesale({from:founder});
        
@@ -272,7 +272,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),17260);
+        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),10480);
 
         await Tuurnt.endPrivatesale({from:founder});
        
@@ -292,7 +292,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
 
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2);
-        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),14383);
+        assert.equal((await TuurntToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(),8733);
         
         await increaseTime(duration.days(3));
        
@@ -335,7 +335,7 @@ contract('TuurntCrowdsale',accounts =>{
         });
         
         assert.equal((await Tuurnt.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),17260);
+        assert.equal((await TuurntToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(),10480);
 
 
         try{
