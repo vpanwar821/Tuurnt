@@ -22,7 +22,7 @@ let decimals;
 let startDate;
 let timeSnapshot;
 
-contract('TuurntCrowsale',accounts =>{ 
+contract('TuurntCrowdsale',accounts =>{ 
     before(async()=>{
         founder = accounts[0];
         holder1 = accounts[1];

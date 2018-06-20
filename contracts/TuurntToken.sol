@@ -18,7 +18,6 @@ contract TuurntToken is StandardToken, DetailedERC20 {
     uint256 public tokenAllocToTeam;
     uint256 public tokenAllocToCrowdsale;
     uint256 public tokenAllocToCompany;
-    uint256 public tokenAllocToAirdrop;
 
     // addresses
     address public crowdsaleAddress;

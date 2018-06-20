@@ -38,9 +38,9 @@ contract TuurntAirdrop is Ownable {
     function airdropToken() external{
         require(whitelist.checkWhitelist(msg.sender));
         require(userAddress[msg.sender] == false);
-        require(token.transfer(msg.sender,dropAmount));
         totalDropAmount = totalDropAmount.add(dropAmount);
         userAddress[msg.sender] = true;
+        require(token.transfer(msg.sender,dropAmount));
     }
 
     /**
