@@ -6,9 +6,9 @@ pragma solidity ^0.4.23;
 * contains the function to buy token.  
 */
 
-import 'openzeppelin-solidity/contracts/math/Math.sol';
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import './TuurntToken.sol';
+import './WhitelistInterface.sol';
 
 
 contract TuurntCrowdsale is Ownable {
@@ -16,6 +16,7 @@ contract TuurntCrowdsale is Ownable {
     using SafeMath for uint256;
 
     TuurntToken public token;
+    WhitelistInterface public whitelist;
 
     //variable declaration
     uint256 public MIN_INVESTMENT = 0.2 ether;
@@ -45,7 +46,6 @@ contract TuurntCrowdsale is Ownable {
 
     event TokenBought(address indexed _investor, uint256 _token, uint256 _timestamp);
     event LogTokenSet(address _token, uint256 _timestamp);
-    event LogState(uint256 _timestamp);
 
     enum State { PrivateSale, PreSale, Gap, CrowdSalePhase1, CrowdSalePhase2, CrowdSalePhase3 }
 
@@ -70,9 +70,10 @@ contract TuurntCrowdsale is Ownable {
     * set the timeslot for the Pre-ICO and ICO.
     * @param _beneficiaryAddress The address to transfer the ether that is raised during crowdsale. 
     */
-    constructor(address _beneficiaryAddress, uint256 _startDate) public {
+    constructor(address _beneficiaryAddress, address _whitelist, uint256 _startDate) public {
         require(_beneficiaryAddress != address(0));
         beneficiaryAddress = _beneficiaryAddress;
+        whitelist = WhitelistInterface(_whitelist);
         startPrivatesaleDate = _startDate;
         isPrivatesaleActive = !isPrivatesaleActive;
     }
@@ -234,7 +235,7 @@ contract TuurntCrowdsale is Ownable {
     payable
     returns(bool)
     {   
-        emit LogState(now);
+        require(whitelist.checkWhitelist(_investorAddress));
         if ((getState() == State.PreSale) ||
             (getState() == State.CrowdSalePhase1) || 
             (getState() == State.CrowdSalePhase2) || 
