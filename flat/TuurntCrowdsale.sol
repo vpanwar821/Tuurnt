@@ -435,7 +435,7 @@ contract TuurntCrowdsale is Ownable {
     //variable declaration
     uint256 public MIN_INVESTMENT = 0.2 ether;
     uint256 public ethRaised;
-    uint256 public ethRate = 863;
+    uint256 public ethRate = 524;
     uint256 public startCrowdsalePhase1Date;
     uint256 public endCrowdsalePhase1Date;
     uint256 public startCrowdsalePhase2Date;
