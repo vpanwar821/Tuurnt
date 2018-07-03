@@ -59,10 +59,6 @@ contract Ownable {
   }
 }
 
-contract WhitelistInterface {
-    function checkWhitelist(address _whiteListAddress) public view returns(bool);
-}
-
 /**
  * @title ERC20Basic
  * @dev Simpler version of ERC20 interface
@@ -419,21 +415,13 @@ contract TuurntAirdrop is Ownable {
     using SafeMath for uint256;
 
     TuurntToken public token;
-    WhitelistInterface public whitelist;
 
     mapping(address=>bool) public userAddress;
 
     uint256 public totalDropAmount;
     uint256 public dropAmount = 100 * 10 ** 18;
     
-    /**
-    * @dev TuurntAirdrop constructor set the whitelist contract address.
-    * @param _whitelist Whitelist contract address  
-    */
-    constructor(address _whitelist) public{
-        whitelist = WhitelistInterface(_whitelist);
-    }
-
+ 
     /**
     * @dev Set the token contract address.
     * @param _tokenAddress token contract address
@@ -446,7 +434,6 @@ contract TuurntAirdrop is Ownable {
     * @dev User can withdraw there airdrop tokens if address exist in the whitelist. 
     */
     function airdropToken() external{
-        require(whitelist.checkWhitelist(msg.sender));
         require(userAddress[msg.sender] == false);
         totalDropAmount = totalDropAmount.add(dropAmount);
         userAddress[msg.sender] = true;
